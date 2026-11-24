@@ -1,6 +1,6 @@
 # Backend integration
 Run the existing Spring Boot app with DB_PASSWORD and SPRING_JPA_HIBERNATE_DDL_AUTO=validate.
-Apply database/migrations/002_post_views.sql in Supabase SQL Editor before testing board detail visits.
+Post view recording increments posts.view_count directly; no additional table or migration is needed.
 Set APP_FRONTEND_ORIGIN to the exact frontend origin(s), comma-separated. Local default http://localhost:5173.
 Frontend .env.local:
 VITE_USE_MOCK=false

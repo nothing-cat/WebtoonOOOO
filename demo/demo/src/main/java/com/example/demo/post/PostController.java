@@ -9,7 +9,6 @@ import java.util.*;
 public class PostController {
     private final PostService service;
     public PostController(PostService service){this.service=service;}
-    public record Visit(UUID visitId){}
     @GetMapping("/posts") public List<PostService.PostDto> list(@RequestParam(required=false) PostCategory category,HttpServletRequest r){return service.list(category,false,SessionUser.id(r));}
     @GetMapping("/posts/popular") public List<PostService.PostDto> popular(@RequestParam(required=false) PostCategory category,HttpServletRequest r){return service.list(category,true,SessionUser.id(r));}
     @GetMapping("/posts/{id}") public PostService.PostDto get(@PathVariable Long id,HttpServletRequest r){return service.get(id,SessionUser.id(r));}
@@ -20,5 +19,5 @@ public class PostController {
     @DeleteMapping("/posts/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void delete(@PathVariable Long id,HttpServletRequest r){service.delete(id,SessionUser.require(r));}
     @PostMapping("/posts/{id}/like") @ResponseStatus(HttpStatus.NO_CONTENT) public void like(@PathVariable Long id,HttpServletRequest r){service.like(id,SessionUser.require(r),true);}
     @DeleteMapping("/posts/{id}/like") @ResponseStatus(HttpStatus.NO_CONTENT) public void unlike(@PathVariable Long id,HttpServletRequest r){service.like(id,SessionUser.require(r),false);}
-    @PostMapping("/posts/{id}/views") @ResponseStatus(HttpStatus.NO_CONTENT) public void view(@PathVariable Long id,@RequestBody Visit v){service.visit(id,v.visitId());}
+    @PostMapping("/posts/{id}/views") @ResponseStatus(HttpStatus.NO_CONTENT) public void view(@PathVariable Long id){service.visit(id);}
 }

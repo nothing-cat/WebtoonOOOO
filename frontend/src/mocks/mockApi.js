@@ -50,7 +50,7 @@ export async function mock(path,method='GET',body={}){
   if(c==='comments'){if(method==='GET')return state.postComments.filter(x=>x.postId===p.id);const u=auth();if(!body.content?.trim())fail('댓글을 입력하세요.');const item={id:state.next++,postId:p.id,userId:u.id,username:u.username,content:body.content,createdAt:now()};state.postComments.push(item);save();return item}
   if(method==='PUT'){if(auth().id!==p.userId)fail('수정 권한이 없습니다.');Object.assign(p,validate(),{updatedAt:now()});save();return pview(p)}
   if(method==='DELETE'){if(!canDelete(p))fail('삭제 권한이 없습니다.');state.posts=state.posts.filter(x=>x.id!==p.id);state.postComments=state.postComments.filter(x=>x.postId!==p.id);state.likes=state.likes.filter(x=>!(x.kind==='post'&&x.id===String(p.id)));save();return null}
-  if(c==='views'&&method==='POST'){if(!body.visitId)fail('방문 ID가 필요합니다.');state.postViews ||= [];if(!state.postViews.some(v=>v.id===p.id&&v.visitId===body.visitId)){state.postViews.push({id:p.id,visitId:body.visitId});p.viewCount++;save()}return pview(p)}
+  if(c==='views'&&method==='POST'){p.viewCount=(p.viewCount||0)+1;save();return null}
   if(method==='GET')return pview(p)
  }
  if(a==='comments'||a==='post-comments'){

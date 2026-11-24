@@ -32,5 +32,5 @@ public class PostService {
     public PostDto update(Long id,Input in,UUID actor){var u=access.require(actor);var p=require(id);access.owner(u,p.getUser(),false);apply(p,in,u);return dto(posts.saveAndFlush(p),actor);}
     public void delete(Long id,UUID actor){var p=require(id);access.owner(access.require(actor),p.getUser(),true);posts.delete(p);}
     public void like(Long id,UUID actor,boolean add){access.require(actor);require(id);if(add)jdbc.update("insert into public.post_likes(post_id,user_id) values (?,?) on conflict do nothing",id,actor);else jdbc.update("delete from public.post_likes where post_id=? and user_id=?",id,actor);}
-    public void visit(Long id,UUID visitId){if(visitId==null)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"방문 ID가 필요합니다.");require(id);int inserted=jdbc.update("insert into public.post_views(post_id,visit_id) values (?,?) on conflict do nothing",id,visitId);if(inserted==1)posts.incrementViewCount(id);}
+    public void visit(Long id){if(posts.incrementViewCount(id)==0)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"게시글이 없습니다.");}
 }
