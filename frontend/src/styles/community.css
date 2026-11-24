@@ -18,3 +18,10 @@
 .board-comment-form,.board-comment{background:var(--surface);border:1px solid var(--glass-line);border-radius:8px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow-soft)}.board-comment-form textarea,.editor textarea,.editor input,.editor select{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--surface-solid);color:var(--ink);font:inherit}.board-comment-form textarea{border:0;min-height:65px;resize:vertical}.comment-form-actions,.editor-actions{justify-content:flex-end}.board-comment p{white-space:pre-wrap}
 .editor,.review-picker{display:grid;gap:16px}.editor textarea{resize:vertical}.editor .search-box{display:flex;gap:8px}.editor .search-box input{flex:1;min-width:0}.error{color:#a52b42}.section-heading h2{margin:0}
 @media(max-width:760px){.community-shell{display:block}.community-sidebar{margin-top:16px;flex-direction:row;flex-wrap:wrap}.community-sidebar hr{display:none}.community-shell .page{padding-top:24px}.post-list.compact{grid-template-columns:1fr}}
+
+/* Hide the sidebar on narrow screens; keep the main content full width. */
+@media (max-width: 760px) {
+  .community-shell { display: block; }
+  .community-shell .community-sidebar { display: none; }
+  .community-shell .community-main { width: 100%; min-width: 0; }
+}
