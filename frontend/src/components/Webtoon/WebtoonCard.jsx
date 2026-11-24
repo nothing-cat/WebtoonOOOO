@@ -10,7 +10,7 @@ function WebtoonCard({ webtoon, rank }) {
       <Link to={`/webtoon/${encodeURIComponent(webtoon.id)}`}>
         <div className="webtoon-cover-wrap">
           {rank != null && <span className="webtoon-rank" aria-label={`${rank}위`}>{rank}</span>}
-        {webtoon.thumbnailUrl ? <img src={webtoon.thumbnailUrl} alt={`${webtoon.title} 표지`} /> : <div className="webtoon-placeholder">표지</div>}
+        {webtoon.thumbnailUrl ? <img loading="lazy" decoding="async" src={webtoon.thumbnailUrl} alt={`${webtoon.title} 표지`} /> : <div className="webtoon-placeholder">표지</div>}
         </div>
         <div className="webtoon-card-body">
           <div className="card-meta">
