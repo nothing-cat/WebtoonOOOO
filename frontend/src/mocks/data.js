@@ -1,4 +1,4 @@
-export const genres=[{id:'fantasy',name:'판타지'},{id:'romance',name:'로맨스'},{id:'action',name:'액션'},{id:'daily',name:'일상'}]
+export const genres=[{id:'fantasy',name:'판타지'},{id:'romance',name:'로맨스'},{id:'action',name:'액션'},{id:'drama',name:'드라마'},{id:'daily',name:'일상'}]
 export const platforms=[{id:'naver',name:'네이버웹툰'},{id:'kakao',name:'카카오웹툰'},{id:'ridi',name:'리디'}]
 export const webtoons=[
 ['W001','달빛 우체국','서하','판타지','fantasy',['naver','ridi'],'#7772ac',18],

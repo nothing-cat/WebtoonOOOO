@@ -15,5 +15,5 @@ else if(parts[0]==='board'&&/^\d+$/.test(parts[1]||'')&&parts.length===2)page=<P
 else if(path==='/login'||path==='/signup')page=<Account key={path} signup={path==='/signup'}/>
 else if(path==='/profile')page=<Profile/>
 else page=<><h1>페이지를 찾을 수 없습니다.</h1><a href="#/">홈으로</a></>
-return <Layout>{page}</Layout>}
+return <Layout path={path} params={params}>{page}</Layout>}
 export default function App(){return <AuthProvider><Routes/></AuthProvider>}

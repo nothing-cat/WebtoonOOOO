@@ -26,7 +26,7 @@ export async function mock(path,method='GET',body={}){
  if(a==='platforms')return platforms
  if(a==='users'&&b==='me'){
   const u=auth()
-  if(c==='favorites')return state.favorites.filter(x=>x.userId===u.id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(x=>wview(webtoons.find(w=>w.id===x.webtoonId)))
+  if(c==='favorites')return state.favorites.filter(x=>x.userId===u.id).sort((a,b)=>(b.lastClickedAt||b.createdAt).localeCompare(a.lastClickedAt||a.createdAt)).map(x=>wview(webtoons.find(w=>w.id===x.webtoonId)))
   if(c==='comments')return state.comments.filter(x=>x.userId===u.id).map(cview)
   if(c==='posts')return state.posts.filter(x=>x.userId===u.id).map(pview)
   if(c==='post-comments')return state.postComments.filter(x=>x.userId===u.id)
@@ -38,10 +38,11 @@ export async function mock(path,method='GET',body={}){
   if(c==='favorite'){const u=auth();state.favorites=state.favorites.filter(x=>!(x.userId===u.id&&x.webtoonId===b));if(method==='POST')state.favorites.push({userId:u.id,webtoonId:b,createdAt:now()});save();return wview(w)}
   if(c==='reviews')return state.posts.filter(p=>p.category==='REVIEW'&&p.webtoonId===b).map(pview)
   if(c==='comments'){if(method==='GET')return state.comments.filter(x=>x.webtoonId===b).map(cview);const u=auth();if(!body.text?.trim())fail('댓글을 입력하세요.');const item={id:state.next++,webtoonId:b,userId:u.id,username:u.username,text:body.text,createdAt:now()};state.comments.push(item);save();return cview(item)}
+  if(method==='GET'&&state.user){const f=state.favorites.find(x=>x.userId===state.user.id&&x.webtoonId===b);if(f){f.lastClickedAt=now();save()}}
   return wview(w)
  }
  if(a==='posts'){
-  if((!b||b==='popular')&&method==='GET'){let list=state.posts.filter(p=>!q.get('category')||p.category===q.get('category')).map(pview);return list.sort((x,y)=>b==='popular'?y.likeCount-x.likeCount:y.id-x.id)}
+  if((!b||b==='popular')&&method==='GET'){let list=state.posts.filter(p=>!q.get('category')||p.category===q.get('category')).map(pview);return list.sort((x,y)=>b==='popular'?y.likeCount-x.likeCount:(Number(y.category==='NOTICE')-Number(x.category==='NOTICE')||y.id-x.id))}
   const validate=()=>{const u=auth();if(!['NOTICE','GENERAL','REVIEW','QUESTION'].includes(body.category)||!body.title?.trim()||!body.content?.trim())fail('필수 항목을 입력하세요.');if(body.category==='NOTICE'&&u.role!=='ADMIN')fail('관리자만 공지를 작성할 수 있습니다.');if(body.category==='REVIEW'&&!webtoons.some(w=>w.id===body.webtoonId))fail('리뷰 웹툰을 선택하세요.');return {category:body.category,title:body.title,content:body.content,webtoonId:body.category==='REVIEW'?body.webtoonId:null}}
   if(!b&&method==='POST'){const v=validate(),u=auth();const p={...v,id:state.next++,userId:u.id,username:u.username,createdAt:now(),viewCount:0,likeCount:0};state.posts.push(p);save();return pview(p)}
   const p=state.posts.find(p=>p.id===Number(b))||fail('게시글이 없습니다.')
