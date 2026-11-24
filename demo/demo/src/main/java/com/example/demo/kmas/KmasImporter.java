@@ -87,9 +87,8 @@ public class KmasImporter {
         String title=first(value(row,"prdctNm"),value(row,"title")), age=value(row,"ageGradCdNm");
         String picture=value(row,"pictrWritrNm"), story=value(row,"sntncWritrNm");
         if(title.isBlank())return "invalid";
-        String rating=age.replaceAll("\\s+","");
-        if(rating.matches(".*(?:18세|19세|20세|성인|청소년이용불가|청소년관람불가|청불).*"))return "adult";
-        if(!rating.matches("전체(?:이용가|관람가)?|전연령(?:이용가)?|(?:[0-9]|1[0-7])세(?:이상|이용가|관람가)"))return "unknownAge";
+        String exclusion=KmasAgeRating.exclusion(age);
+        if(exclusion!=null)return exclusion;
         String identity=String.join("\\037",normalize(title),normalize(picture),normalize(story));
         if(picture.isBlank()&&story.isBlank()){String fallback=first(value(row,"isbn"),value(row,"imageDownloadUrl"));if(fallback.isBlank())return "invalid";identity+= "\\037"+requestedPlatform+"\\037"+fallback;}
         String id=stable("kmas:",identity);
