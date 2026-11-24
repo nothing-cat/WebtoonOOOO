@@ -78,6 +78,7 @@ public class KmasImporter {
             on conflict(id) do update set title=excluded.title,picture_writer=excluded.picture_writer,story_writer=excluded.story_writer,description=excluded.description,thumbnail_url=excluded.thumbnail_url,genre_id=excluded.genre_id,age_rating=excluded.age_rating,updated_at=now()
             """,id,title,value(row,"pictrWritrNm"),value(row,"sntncWritrNm"),value(row,"outline"),value(row,"imageDownloadUrl"),genreId,age);
         String platform=first(value(row,"pltfomCdNm"),requestedPlatform);
+        if(platform.equals("리디북스"))platform="리디";
         if(!platform.isBlank()){
             jdbc.update("insert into public.platforms(id,name) values (?,?) on conflict(name) do nothing",stable("kmas-",platform),platform);
             String platformId=jdbc.queryForObject("select id from public.platforms where name=?",String.class,platform);
