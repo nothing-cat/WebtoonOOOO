@@ -3,6 +3,8 @@ WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install --no-audit --no-fund
 COPY frontend/ ./
+ENV VITE_USE_MOCK=false
+ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
 FROM eclipse-temurin:21-jdk AS backend-build
