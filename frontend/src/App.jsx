@@ -11,7 +11,7 @@ import Signup from './pages/auth/Signup.jsx'
 import Profile from './pages/Profile/Profile.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 import {Board,PostDetail,PostEditor} from './pages/Board/Board.jsx'
-import {mockMode} from './services/api.js'
+import {mockMode} from './services/apiClient.js'
 import './styles/community.css'
 function BoardRoute(){const [params]=useSearchParams();return <Board params={params}/>}
 function PostRoute(){const {id}=useParams();return <PostDetail key={id} id={id}/>}

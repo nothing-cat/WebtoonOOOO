@@ -8,7 +8,6 @@ export const webtoons=[
 ['W005','별의 도서관','윤슬','판타지','fantasy',['kakao','ridi'],'#6d91a7',11],
 ['W006','우리의 거리','소담','로맨스','romance',['naver'],'#a78a9e',9]
 ].map(([id,title,pictureWriter,genre,genreId,platformIds,color,likeCount])=>({id,title,pictureWriter,storyWriter:pictureWriter,genre,genreId,platformIds,platforms:platformIds.map(id=>platforms.find(p=>p.id===id).name),description:title+' — 가상의 웹툰 소개입니다.',thumbnailUrl:null,ageRating:'전체 이용가',color,likeCount}))
-export const categories={NOTICE:'공지사항',GENERAL:'일반',REVIEW:'리뷰',QUESTION:'질문'}
 export const initialPosts=[
 {id:1,userId:'admin',username:'admin',category:'NOTICE',title:'웹툰 커뮤니티 이용 안내',content:'서로 존중하며 이야기를 나눠 주세요.',viewCount:32,likeCount:5},
 {id:2,userId:'demo',username:'demo',category:'REVIEW',webtoonId:'W001',title:'달빛 우체국 감상 후기',content:'잔잔한 분위기가 좋았어요.',viewCount:21,likeCount:9},

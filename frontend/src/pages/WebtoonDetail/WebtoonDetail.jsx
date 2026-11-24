@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { request } from "../../services/api.js";
+import { setFavorite } from "../../services/favoriteApi.js";
 import { useData } from "../../hooks/useData.js";
 import { PostList, Status } from "../shared.jsx";
-import { fetchWebtoonById } from "../../services/webtoonApi.js";
+import { fetchWebtoonById, fetchReviews } from "../../services/webtoonApi.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import CommentList from "../../components/Comment/CommentList.jsx";
 import "./WebtoonDetail.css";
@@ -16,7 +16,7 @@ function WebtoonDetail() {
 
   // 로그인한 사용자 정보와 프로필 수정 함수 가져오기
   const { currentUser } = useAuth();
-  const reviews = useData("/webtoons/"+encodeURIComponent(id)+"/reviews", []);
+  const reviews = useData(()=>fetchReviews(id),"reviews:"+id, []);
 
   // 웹툰 정보를 저장할 상태
   const [webtoon, setWebtoon] = useState(null);
@@ -42,7 +42,7 @@ function WebtoonDetail() {
     }
 
     load();
-  }, [id]); // id가 바뀌면 다시 실행
+  }, [id,currentUser?.id]); // id가 바뀌면 다시 실행
 
   // 로딩 중일 때 화면
   if (loading) {
@@ -63,17 +63,17 @@ function WebtoonDetail() {
 
   // 현재 웹툰이 북마크되어 있는지 확인
   const isBookmarked = Boolean(webtoon.isFavorite);
-  const handleBookmark = async () => { if(!currentUser){alert("로그인 후 이용해주세요.");return;} try{await request("/webtoons/"+encodeURIComponent(webtoon.id)+"/favorite",isBookmarked?"DELETE":"POST");setWebtoon(await fetchWebtoonById(id));}catch(e){alert(e.message);} };
+  const handleBookmark = async () => { if(!currentUser){alert("로그인 후 이용해주세요.");return;} try{await setFavorite(webtoon.id,!isBookmarked);setWebtoon(await fetchWebtoonById(id));}catch(e){alert(e.message);} };
   return (
     <div className="page">
       <section className="detail-layout">
-        {webtoon.image ? <img className="detail-cover" src={webtoon.image} alt={`${webtoon.title} 표지`} /> : <div className="detail-cover webtoon-placeholder">표지</div>}
+        {webtoon.thumbnailUrl ? <img className="detail-cover" src={webtoon.thumbnailUrl} alt={`${webtoon.title} 표지`} /> : <div className="detail-cover webtoon-placeholder">표지</div>}
         <div className="card detail-info">
           <div className="detail-topbar">
             <p className="eyebrow">
               {webtoon.platforms?.length
                 ? webtoon.platforms.join(", ")
-                : webtoon.platform}
+                : '정보 없음'}
             </p>
             <button className="bookmark-button" onClick={handleBookmark}>
               {isBookmarked ? "♥ 좋아하는 작품에서 해제" : "♡ 좋아하는 작품에 추가"}
@@ -102,9 +102,9 @@ function WebtoonDetail() {
             <div>
               <dt>글/그림 작가</dt>
               <dd>
-                {webtoon.sntncWritrNm === webtoon.pictrWritrNm
-                  ? webtoon.sntncWritrNm
-                  : `${webtoon.sntncWritrNm} · ${webtoon.pictrWritrNm}`}
+                {webtoon.storyWriter === webtoon.pictureWriter
+                  ? webtoon.storyWriter
+                  : `${webtoon.storyWriter} · ${webtoon.pictureWriter}`}
               </dd>
             </div>
             <div>
@@ -113,7 +113,7 @@ function WebtoonDetail() {
             </div>
             <div>
               <dt>연령등급</dt>
-              <dd>{webtoon.ageGrade || "정보 없음"}</dd>
+              <dd>{webtoon.ageRating || "정보 없음"}</dd>
             </div>
           </dl>
         </div>

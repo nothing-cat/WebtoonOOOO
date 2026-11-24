@@ -15,7 +15,7 @@ const pview=p=>({...p,likeCount:(p.likeCount||0)+count('post',p.id),isLiked:like
 const cview=c=>({...c,empathyCount:count('comment',c.id),isLiked:liked('comment',c.id)})
 function toggle(kind,id,method){const user=auth();state.likes=state.likes.filter(x=>!(x.kind===kind&&x.id===String(id)&&x.userId===user.id));if(method==='POST')state.likes.push({kind,id:String(id),userId:user.id});save();return null}
 export async function mock(path,method='GET',body={}){
- const [pathname,qs]=path.split('?');const q=new URLSearchParams(qs);const parts=pathname.split('/').filter(Boolean).map(decodeURIComponent);const [a,b,c,d]=parts
+ const [pathname,qs]=path.split('?');const q=new URLSearchParams(qs);const parts=pathname.split('/').filter(Boolean).map(decodeURIComponent);const [a,b,c]=parts
  if(a==='auth'){
   if(b==='logout'){state.user=null;save();return null}
   if(!/^[a-z0-9_]{4,20}$/.test(body.username||'')||!body.password)fail('아이디 4~20자 및 비밀번호를 입력하세요.')
@@ -50,13 +50,14 @@ export async function mock(path,method='GET',body={}){
   if(c==='comments'){if(method==='GET')return state.postComments.filter(x=>x.postId===p.id);const u=auth();if(!body.content?.trim())fail('댓글을 입력하세요.');const item={id:state.next++,postId:p.id,userId:u.id,username:u.username,content:body.content,createdAt:now()};state.postComments.push(item);save();return item}
   if(method==='PUT'){if(auth().id!==p.userId)fail('수정 권한이 없습니다.');Object.assign(p,validate(),{updatedAt:now()});save();return pview(p)}
   if(method==='DELETE'){if(!canDelete(p))fail('삭제 권한이 없습니다.');state.posts=state.posts.filter(x=>x.id!==p.id);state.postComments=state.postComments.filter(x=>x.postId!==p.id);state.likes=state.likes.filter(x=>!(x.kind==='post'&&x.id===String(p.id)));save();return null}
-  if(method==='GET'){p.viewCount++;save();return pview(p)}
+  if(c==='views'&&method==='POST'){if(!body.visitId)fail('방문 ID가 필요합니다.');state.postViews ||= [];if(!state.postViews.some(v=>v.id===p.id&&v.visitId===body.visitId)){state.postViews.push({id:p.id,visitId:body.visitId});p.viewCount++;save()}return pview(p)}
+  if(method==='GET')return pview(p)
  }
  if(a==='comments'||a==='post-comments'){
   const list=a==='comments'?state.comments:state.postComments;const item=list.find(x=>x.id===Number(b))||fail('댓글이 없습니다.')
   if(c==='like'&&a==='comments')return toggle('comment',item.id,method)
   if(method==='PUT'){if(auth().id!==item.userId)fail('수정 권한이 없습니다.');const field=a==='comments'?'text':'content';if(!body[field]?.trim())fail('댓글을 입력하세요.');item[field]=body[field];item.updatedAt=now();save();return item}
-  if(method==='DELETE'){if(!canDelete(item))fail('삭제 권한이 없습니다.');list.splice(list.indexOf(item),1);save();return null}
+  if(method==='DELETE'){if(!canDelete(item))fail('삭제 권한이 없습니다.');list.splice(list.indexOf(item),1);if(a==='comments')state.likes=state.likes.filter(x=>!(x.kind==='comment'&&x.id===String(item.id)));save();return null}
  }
  fail('지원하지 않는 데모 API: '+path)
 }

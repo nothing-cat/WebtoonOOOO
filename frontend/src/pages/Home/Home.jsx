@@ -1,10 +1,12 @@
 import {Link} from 'react-router-dom'
 import {useAuth} from '../../context/AuthContext.jsx'
 import {useData} from '../../hooks/useData.js'
-import {normalizeWebtoon} from '../../services/webtoonApi.js'
+import {fetchPopularWebtoons} from '../../services/webtoonApi.js'
+import {fetchFavorites} from '../../services/userApi.js'
+import {fetchPopularPosts} from '../../services/boardApi.js'
 import WebtoonGrid from '../../components/Webtoon/WebtoonGrid.jsx'
 import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import {PostList,Status} from '../shared.jsx'
 import './Home.css'
-export default function Home(){const {currentUser}=useAuth();const favorites=useData(currentUser?'/users/me/favorites':null,[]),popular=useData('/webtoons/popular',[]),posts=useData('/posts/popular',[])
-return <div className="page"><section className="hero-section"><div><p className="eyebrow">MOODTOON</p><h1>좋아하는 웹툰을 한곳에서</h1><p>다양한 플랫폼의 웹툰을 찾고 독자들과 이야기를 나눠보세요.</p></div></section>{currentUser&&<section><SectionTitle title="좋아하는 웹툰" eyebrow="최근 클릭한 순"><Link className="text-link" to="/profile?tab=favorites">전체 보기 →</Link></SectionTitle><Status state={favorites}><WebtoonGrid webtoons={(favorites.data||[]).slice(0,4).map(normalizeWebtoon)}/></Status></section>}<section><SectionTitle title="인기 웹툰"/><Status state={popular}><WebtoonGrid webtoons={(popular.data||[]).slice(0,4).map(normalizeWebtoon)}/></Status></section><section><SectionTitle title="게시판 인기글"><Link className="text-link" to="/board">게시판 바로가기 →</Link></SectionTitle><Status state={posts}><PostList compact posts={(posts.data||[]).filter(p=>p.category!=='NOTICE').slice(0,2)}/></Status></section></div>}
+export default function Home(){const {currentUser}=useAuth();const favorites=useData(fetchFavorites,currentUser?'favorites:'+currentUser.id:null,[]),popular=useData(fetchPopularWebtoons,'popular-webtoons',[]),posts=useData(fetchPopularPosts,'popular-posts',[])
+return <div className="page"><section className="hero-section"><div><p className="eyebrow">MOODTOON</p><h1>좋아하는 웹툰을 한곳에서</h1><p>다양한 플랫폼의 웹툰을 찾고 독자들과 이야기를 나눠보세요.</p></div></section>{currentUser&&<section><SectionTitle title="좋아하는 웹툰" eyebrow="최근 클릭한 순"><Link className="text-link" to="/profile?tab=favorites">전체 보기 →</Link></SectionTitle><Status state={favorites}><WebtoonGrid webtoons={(favorites.data||[]).slice(0,4)}/></Status></section>}<section><SectionTitle title="인기 웹툰"/><Status state={popular}><WebtoonGrid webtoons={(popular.data||[]).slice(0,4)}/></Status></section><section><SectionTitle title="게시판 인기글"><Link className="text-link" to="/board">게시판 바로가기 →</Link></SectionTitle><Status state={posts}><PostList compact posts={(posts.data||[]).filter(p=>p.category!=='NOTICE').slice(0,2)}/></Status></section></div>}

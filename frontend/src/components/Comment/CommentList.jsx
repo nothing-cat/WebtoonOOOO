@@ -30,7 +30,7 @@ function CommentList({ webtoonId }) {
 
     // 인기순
     if (sortType === "popular") {
-      return nextComments.sort((a, b) => b.empathy - a.empathy);
+      return nextComments.sort((a, b) => (b.empathyCount||0) - (a.empathyCount||0));
     }
 
     // 최신순: id 기준 (시간 기반)

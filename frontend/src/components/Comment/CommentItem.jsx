@@ -18,7 +18,7 @@ function CommentItem({ comment, title, onDelete, onEdit, onEmpathy, isLiked, }) 
     <article className="comment-item">
       {/* 작성자 표시 */}
       <div className="comment-header">
-        <strong>{title || comment.user}</strong>
+        <strong>{title || comment.username}</strong>
 
         <div className="comment-actions">
           {onEdit && canEdit && !isEditing && (
@@ -60,7 +60,7 @@ function CommentItem({ comment, title, onDelete, onEdit, onEmpathy, isLiked, }) 
           type="button"
           onClick={() => onEmpathy(comment.id)}
         >
-          {isLiked ? "♥ 공감" : "♡ 공감"} {comment.empathy}
+          {isLiked ? "♥ 공감" : "♡ 공감"} {comment.empathyCount}
         </Button>
       )}
 
