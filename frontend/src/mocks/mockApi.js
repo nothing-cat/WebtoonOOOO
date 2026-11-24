@@ -33,7 +33,7 @@ export async function mock(path,method='GET',body={}){
   return u
  }
  if(a==='webtoons'){
-  if(!b||b==='popular'){let list=webtoons.map(wview).filter(w=>(!q.get('keyword')||[w.title,w.pictureWriter,w.storyWriter].join(' ').includes(q.get('keyword')))&&(!q.get('genre')||w.genreId===q.get('genre'))&&(!q.get('platform')||w.platformIds.includes(q.get('platform'))));if(b==='popular')list=list.filter(w=>w.likeCount>0).sort((x,y)=>y.likeCount-x.likeCount||x.id.localeCompare(y.id));return list}
+  if(!b||b==='popular'||b==='page'){let list=webtoons.map(wview).filter(w=>(!q.get('keyword')||[w.title,w.pictureWriter,w.storyWriter].join(' ').includes(q.get('keyword')))&&(!q.get('genre')||w.genreId===q.get('genre'))&&(!q.get('platform')||w.platformIds.includes(q.get('platform'))));if(b==='popular'||q.get('popular')==='true')list=list.filter(w=>w.likeCount>0).sort((x,y)=>y.likeCount-x.likeCount||x.id.localeCompare(y.id));else list.sort((x,y)=>x.title.localeCompare(y.title)||x.id.localeCompare(y.id));const page=Number(q.get('page')||1),size=Number(q.get('size')||24);if(!Number.isInteger(page)||page<1||!Number.isInteger(size)||size<1||size>100)fail('페이지 설정 오류');const items=list.slice((page-1)*size,page*size);return b==='page'?{items,page,size,totalCount:list.length,totalPages:Math.ceil(list.length/size)}:items}
   const w=webtoons.find(w=>w.id===b)||fail('웹툰이 없습니다.')
   if(c==='favorite'){const u=auth();state.favorites=state.favorites.filter(x=>!(x.userId===u.id&&x.webtoonId===b));if(method==='POST')state.favorites.push({userId:u.id,webtoonId:b,createdAt:now()});save();return wview(w)}
   if(c==='reviews')return state.posts.filter(p=>p.category==='REVIEW'&&p.webtoonId===b).map(pview)

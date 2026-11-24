@@ -9,3 +9,5 @@ export const fetchWebtoonById = id => request(path(id))
 export const fetchReviews = id => request(path(id)+'/reviews')
 export const fetchGenres = () => request('/genres')
 export const fetchPlatforms = () => request('/platforms')
+
+export const fetchWebtoonPage = (filters={}) => request('/webtoons/page'+query(filters))

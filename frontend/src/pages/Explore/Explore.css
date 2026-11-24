@@ -14,3 +14,5 @@
   gap: 12px;
   margin-bottom: 16px;
 }
+.webtoon-pagination { display:flex; align-items:center; justify-content:center; gap:16px; margin:24px 0; }
+.webtoon-pagination button:disabled { opacity:.45; cursor:not-allowed; }
