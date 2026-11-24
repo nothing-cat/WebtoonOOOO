@@ -1,19 +1,19 @@
-import {AuthProvider} from './context/AuthContext.jsx'
-import Layout from './components/Layout.jsx'
-import {useRoute} from './router.js'
-import {Home,Explore,WebtoonDetail} from './pages/Webtoons.jsx'
-import {Board,PostDetail,PostEditor} from './pages/Board.jsx'
-import {Account,Profile} from './pages/Account.jsx'
-function Routes(){const {path,params,route}=useRoute();let page;const parts=path.split('/').filter(Boolean)
-if(path==='/')page=<Home/>
-else if(path==='/explore')page=<Explore params={params}/>
-else if(parts[0]==='webtoon'&&parts.length===2)page=<WebtoonDetail key={route} id={decodeURIComponent(parts[1])}/>
-else if(path==='/board')page=<Board params={params}/>
-else if(path==='/board/write')page=<PostEditor key={route} params={params}/>
-else if(parts[0]==='board'&&/^\d+$/.test(parts[1]||'')&&parts.length===3&&parts[2]==='edit')page=<PostEditor key={route} id={parts[1]} params={params}/>
-else if(parts[0]==='board'&&/^\d+$/.test(parts[1]||'')&&parts.length===2)page=<PostDetail key={route} id={parts[1]}/>
-else if(path==='/login'||path==='/signup')page=<Account key={path} signup={path==='/signup'}/>
-else if(path==='/profile')page=<Profile/>
-else page=<><h1>페이지를 찾을 수 없습니다.</h1><a href="#/">홈으로</a></>
-return <Layout path={path} params={params}>{page}</Layout>}
-export default function App(){return <AuthProvider><Routes/></AuthProvider>}
+import {Route,Routes,useLocation,useSearchParams,useParams} from 'react-router-dom'
+import Header from './components/Header/Header.jsx'
+import Footer from './components/Footer/Footer.jsx'
+import Sidebar from './components/Sidebar/Sidebar.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
+import Home from './pages/Home/Home.jsx'
+import Explore from './pages/Explore/Explore.jsx'
+import WebtoonDetail from './pages/WebtoonDetail/WebtoonDetail.jsx'
+import Login from './pages/auth/Login.jsx'
+import Signup from './pages/auth/Signup.jsx'
+import Profile from './pages/Profile/Profile.jsx'
+import NotFound from './pages/NotFound/NotFound.jsx'
+import {Board,PostDetail,PostEditor} from './pages/Board/Board.jsx'
+import {mockMode} from './services/api.js'
+import './styles/community.css'
+function BoardRoute(){const [params]=useSearchParams();return <Board params={params}/>}
+function PostRoute(){const {id}=useParams();return <PostDetail key={id} id={id}/>}
+function EditorRoute(){const {id}=useParams();const [params]=useSearchParams();return <PostEditor key={id||'new'} id={id} params={params}/>}
+export default function App(){const {pathname}=useLocation();const sidebar=pathname==='/'||pathname==='/explore';return <div className="app"><Header/><ScrollToTop/><div className={sidebar?'community-shell':'community-full'}>{sidebar&&<Sidebar/>}<main className="community-main"><Routes><Route path="/" element={<Home/>}/><Route path="/explore" element={<Explore/>}/><Route path="/webtoon/:id" element={<WebtoonDetail/>}/><Route path="/login" element={<Login/>}/><Route path="/signup" element={<Signup/>}/><Route path="/profile" element={<Profile/>}/><Route path="/board" element={<BoardRoute/>}/><Route path="/board/write" element={<EditorRoute/>}/><Route path="/board/:id/edit" element={<EditorRoute/>}/><Route path="/board/:id" element={<PostRoute/>}/><Route path="*" element={<NotFound/>}/></Routes></main></div>{mockMode&&<p className="demo-note">데모 모드 · 가상 데이터 · 실제 비밀번호를 입력하지 마세요.</p>}<Footer/></div>}

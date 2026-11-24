@@ -1,1 +1,0 @@
-export default function SearchBar({keyword,onKeywordChange,onEnter}){return <form className="search-box" onSubmit={e=>{e.preventDefault();onEnter()}}><input aria-label="작품명 또는 작가명" value={keyword} onChange={e=>onKeywordChange(e.target.value)} placeholder="작품명, 작가를 입력하세요"/><button>검색</button></form>}
