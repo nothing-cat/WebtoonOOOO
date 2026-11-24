@@ -1,0 +1,10 @@
+import {request,query} from './apiClient.js'
+const path = id => '/posts/'+encodeURIComponent(id)
+export const fetchPosts = (filters={}) => request('/posts'+query(filters))
+export const fetchPopularPosts = (filters={}) => request('/posts/popular'+query(filters))
+export const fetchPost = id => request(path(id))
+export const recordPostView = id => request(path(id)+'/views','POST')
+export const createPost = body => request('/posts','POST',body)
+export const updatePost = (id,body) => request(path(id),'PUT',body)
+export const deletePost = id => request(path(id),'DELETE')
+export const setPostLike = (id,liked) => request(path(id)+'/like',liked?'POST':'DELETE')

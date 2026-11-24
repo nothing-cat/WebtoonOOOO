@@ -1,0 +1,27 @@
+/* 신규 커뮤니티 화면에만 적용되는 스타일. 기존 무드툰 테마 사용 */
+.community-shell{width:min(1360px,calc(100% - 36px));margin:0 auto;display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
+.community-main{min-width:0}.community-shell .page{width:100%}
+.community-sidebar{margin-top:44px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.community-sidebar h3{margin:0;color:var(--primary-dark)}.community-sidebar a{padding:5px 0;color:var(--muted)}.community-sidebar a:hover{color:var(--primary-dark)}
+.community-sidebar hr{width:100%;border:0;border-top:1px solid var(--line)}
+.webtoon-placeholder{display:grid;place-items:center;aspect-ratio:3/4;background:var(--surface-soft);color:var(--muted);width:100%}
+.community-panel{padding:24px}.demo-note{text-align:center;color:var(--muted);font-size:12px}
+.profile-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin-top:24px}.profile-tabs button{border:0;background:transparent;padding:10px;flex:1;cursor:pointer;color:var(--muted);font-weight:700}.profile-tabs button.active{color:var(--primary-dark);background:var(--surface-soft);border-radius:8px}
+.activity-row{display:block;padding:16px;margin:8px 0}
+.signup-card h1,.signup-bottom{text-align:center}.signup-card small{font-size:12px;color:var(--muted)}.password-field{position:relative}.password-field input{padding-right:44px!important}.password-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);cursor:pointer}
+.board-page h1{margin:0 0 24px}.board-page button,.board-page .button,.board-comment-form button{font:inherit;cursor:pointer;padding:9px 18px;border:1px solid var(--line);border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;font-weight:700;display:inline-flex;align-items:center;justify-content:center}.board-page .secondary,.board-comment-form .secondary{background:var(--surface-solid);color:var(--ink)}
+.board-toolbar,.board-controls,.tabs,.section-heading,.post-title-row,.post-meta,.text-actions,.editor-actions,.comment-form-actions,.board-comment-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.board-toolbar,.post-title-row,.post-meta,.board-comment-head{justify-content:space-between}
+.tabs a,.tabs button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 18px;color:var(--ink);font-weight:700}.tabs .active{background:var(--primary);color:white}
+.board-caption,.muted,.post-row small{color:var(--muted)}.switch-label{display:flex;align-items:center;gap:9px}.switch{accent-color:var(--primary);width:18px;height:18px}
+.post-list{display:grid;gap:10px}.post-list.compact{grid-template-columns:repeat(2,minmax(0,1fr))}.post-row{display:block;border:1px solid var(--glass-line);background:var(--surface);box-shadow:var(--shadow-soft);border-radius:8px;padding:13px 16px}.post-row strong,.post-row small{display:block;overflow-wrap:anywhere}.post-row small{margin-top:4px}.post-row:hover{border-color:var(--lavender)}
+.post-title-row h1{margin:0}.post-meta{margin-top:14px;color:var(--muted)}.board-page .text-actions button{background:none;border:0;color:var(--muted);padding:0}.body-text{min-height:110px;white-space:pre-wrap;overflow-wrap:anywhere;margin:38px 0}.like-center{display:flex;justify-content:center;margin:15px 0 40px}.review-link{display:inline-block;margin-top:14px;color:var(--primary-dark)}
+.board-comment-form,.board-comment{background:var(--surface);border:1px solid var(--glass-line);border-radius:8px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow-soft)}.board-comment-form textarea,.editor textarea,.editor input,.editor select{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--surface-solid);color:var(--ink);font:inherit}.board-comment-form textarea{border:0;min-height:65px;resize:vertical}.comment-form-actions,.editor-actions{justify-content:flex-end}.board-comment p{white-space:pre-wrap}
+.editor,.review-picker{display:grid;gap:16px}.editor textarea{resize:vertical}.editor .search-box{display:flex;gap:8px}.editor .search-box input{flex:1;min-width:0}.error{color:#a52b42}.section-heading h2{margin:0}
+@media(max-width:760px){.community-shell{display:block}.community-sidebar{margin-top:16px;flex-direction:row;flex-wrap:wrap}.community-sidebar hr{display:none}.community-shell .page{padding-top:24px}.post-list.compact{grid-template-columns:1fr}}
+
+/* Hide the sidebar on narrow screens; keep the main content full width. */
+@media (max-width: 760px) {
+  .community-shell { display: block; }
+  .community-shell .community-sidebar { display: none; }
+  .community-shell .community-main { width: 100%; min-width: 0; }
+}

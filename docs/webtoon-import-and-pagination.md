@@ -1,0 +1,8 @@
+# KMAS import and webtoon paging
+- Import uses verified offsets 0,100,..., stops at totalCount or short batch. Explicit adult ratings and unknown ratings are separately excluded; unknown values appear in summary. Genre aliases are limited to conservative mappings. Existing IDs unchanged. Platform aliases normalized as before.
+- Per-platform duplicate work IDs are skipped; exact repeated batches stop import. Cross-platform rows still add platform links. Batch transactions roll back on failure; nextOffset identifies resume point. HTTP 429/5xx and connection failures retry up to 3 attempts; no automatic retry for API business errors. HTTP connect/read timeouts 10/30s. Run only one importer at a time; inserted vs updated is based on pre-upsert existence.
+- Summary counts describe processed records, not unique totals across platforms. Compare database count separately. Import is opt-in; turn off after completion.
+- GET /api/webtoons/page?page=1&size=24&keyword=&genre=&platform=&popular=false returns {items,page,size,totalCount,totalPages}. Page is 1-based; size 1..100. Legacy /webtoons and /webtoons/popular return arrays bounded to default 24 (size configurable). Home requests 4, Explore uses page metadata, review picker searches up to 50. Mock supports the same contract.
+- List SQL uses two round trips (count and page data) rather than per-work queries. Existing FK/favorite indexes are used; title substring search still scans matching rows. Detail and favorites unchanged. No new schema needed. Runtime/benchmark not yet verified.
+
+Age rating correction: `전체연령` is an explicitly allowed rating; `확인필요` remains excluded. Regression tests cover the known labels, whitespace variants and adult precedence. Existing IDs and stored data are unchanged.
