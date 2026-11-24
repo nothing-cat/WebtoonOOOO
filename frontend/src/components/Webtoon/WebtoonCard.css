@@ -50,3 +50,8 @@
   font-size: 13px;
   font-weight: 700;
 }
+/* Ranking information appears only on popular-webtoon cards. */
+.webtoon-cover-wrap { position: relative; }
+.webtoon-cover-wrap img { display: block; }
+.webtoon-rank { position: absolute; top: 10px; left: 10px; z-index: 1; display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; background: var(--primary-dark); color: white; font-size: 18px; font-weight: 800; box-shadow: var(--shadow-soft); }
+.webtoon-card .webtoon-like-count { color: var(--primary-dark); font-size: 14px; font-weight: 750; margin: 8px 0; }

@@ -10,7 +10,7 @@ const now=()=>new Date().toISOString()
 const liked=(kind,id)=>state.likes.some(x=>x.kind===kind&&x.id===String(id)&&x.userId===state.user?.id)
 const count=(kind,id)=>state.likes.filter(x=>x.kind===kind&&x.id===String(id)).length
 const favorite=id=>state.favorites.some(x=>x.webtoonId===id&&x.userId===state.user?.id)
-const wview=w=>({...w,likeCount:w.likeCount+state.favorites.filter(x=>x.webtoonId===w.id).length,isFavorite:favorite(w.id)})
+const wview=w=>({...w,likeCount:state.favorites.filter(x=>x.webtoonId===w.id).length,isFavorite:favorite(w.id)})
 const pview=p=>({...p,likeCount:(p.likeCount||0)+count('post',p.id),isLiked:liked('post',p.id),commentCount:state.postComments.filter(c=>c.postId===p.id).length})
 const cview=c=>({...c,empathyCount:count('comment',c.id),isLiked:liked('comment',c.id)})
 function toggle(kind,id,method){const user=auth();state.likes=state.likes.filter(x=>!(x.kind===kind&&x.id===String(id)&&x.userId===user.id));if(method==='POST')state.likes.push({kind,id:String(id),userId:user.id});save();return null}
@@ -33,7 +33,7 @@ export async function mock(path,method='GET',body={}){
   return u
  }
  if(a==='webtoons'){
-  if(!b||b==='popular'){let list=webtoons.map(wview).filter(w=>(!q.get('keyword')||[w.title,w.pictureWriter,w.storyWriter].join(' ').includes(q.get('keyword')))&&(!q.get('genre')||w.genreId===q.get('genre'))&&(!q.get('platform')||w.platformIds.includes(q.get('platform'))));if(b==='popular')list.sort((x,y)=>y.likeCount-x.likeCount);return list}
+  if(!b||b==='popular'){let list=webtoons.map(wview).filter(w=>(!q.get('keyword')||[w.title,w.pictureWriter,w.storyWriter].join(' ').includes(q.get('keyword')))&&(!q.get('genre')||w.genreId===q.get('genre'))&&(!q.get('platform')||w.platformIds.includes(q.get('platform'))));if(b==='popular')list=list.filter(w=>w.likeCount>0).sort((x,y)=>y.likeCount-x.likeCount||x.id.localeCompare(y.id));return list}
   const w=webtoons.find(w=>w.id===b)||fail('웹툰이 없습니다.')
   if(c==='favorite'){const u=auth();state.favorites=state.favorites.filter(x=>!(x.userId===u.id&&x.webtoonId===b));if(method==='POST')state.favorites.push({userId:u.id,webtoonId:b,createdAt:now()});save();return wview(w)}
   if(c==='reviews')return state.posts.filter(p=>p.category==='REVIEW'&&p.webtoonId===b).map(pview)
