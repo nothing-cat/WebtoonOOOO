@@ -1,0 +1,2 @@
+import WebtoonCard from './WebtoonCard.jsx'
+export default function WebtoonGrid({webtoons=[]}){return webtoons.length?<div className="webtoon-grid">{webtoons.map(webtoon=><WebtoonCard key={webtoon.id} webtoon={webtoon}/>)}</div>:<p className="empty-message">표시할 웹툰이 없습니다.</p>}
