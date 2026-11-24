@@ -18,7 +18,8 @@ public class KmasImporter {
     private static final org.slf4j.Logger log=LoggerFactory.getLogger(KmasImporter.class);
     @Value("${KMAS_API_KEY:}") private String key;
     @Value("${kmas.import.pages:1}") private int pages;
-    @Value("${kmas.import.start-page:1}") private int start;
+    @Value("${kmas.import.start-page:0}") private int start;
+    private static final int PAGE_SIZE=100;
     @Value("${kmas.import.platforms:네이버웹툰,카카오웹툰,리디}") private String platformNames;
     private static String value(Map<?,?> m,String k){Object v=m.get(k);return v==null?"":v.toString().trim();}
     private static String first(String a,String b){return a.isBlank()?b:a;}
@@ -26,17 +27,17 @@ public class KmasImporter {
     private static String stable(String prefix,String name){return prefix+UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8));}
     @Bean ApplicationRunner importKmas(JdbcTemplate jdbc,TransactionTemplate tx){
         return args->{
-            if(key.isBlank()||pages<1||pages>100||start<1){log.warn("Check KMAS key and page settings.");return;}
+            if(key.isBlank()||pages<1||pages>100||start<0){log.warn("Check KMAS key and page settings.");return;}
             var client=RestClient.builder().baseUrl("https://www.kmas.or.kr").build();
             for(String requestedPlatform:platformNames.split(",")){
             requestedPlatform=requestedPlatform.trim();
             if(requestedPlatform.isBlank())continue;
             final String platform= requestedPlatform;
             for(int i=0;i<pages;i++){
-                int page=start+i;
+                int page=start+i*PAGE_SIZE;
                 Map<?,?> body;
                 try {
-                    body=client.get().uri(b->b.path("/openapi/search/bookAndWebtoonList").queryParam("prvKey",key).queryParam("pltfomCdNm",platform).queryParam("pageNo",page).queryParam("viewItemCnt",100).build()).retrieve().body(Map.class);
+                    body=client.get().uri(b->b.path("/openapi/search/bookAndWebtoonList").queryParam("prvKey",key).queryParam("pltfomCdNm",platform).queryParam("pageNo",page).queryParam("viewItemCnt",PAGE_SIZE).build()).retrieve().body(Map.class);
                 } catch(Exception e){log.warn("KMAS request failed: platform={}, page={}, error={}",platform,page,e.getClass().getSimpleName());break;}
                 if(body==null){log.warn("Empty KMAS response: {}, {}",platform,page);break;}
                 Map<?,?> result=body.get("result") instanceof Map<?,?> m?m:body;
@@ -50,8 +51,10 @@ public class KmasImporter {
                 Integer count;
                 try{count=tx.execute(status->{int n=0;for(Object item:items)if(item instanceof Map<?,?> row && save(jdbc,row,platform))n++;return n;});}
                 catch(Exception e){log.error("KMAS DB import failed: {}, page {}, error={}",platform,page,e.getClass().getSimpleName());break;}
-                log.info("KMAS {} page {}: {} of {} rows imported",platform,page,count,items.size());
-                if(items.size()<100)break;
+                log.info("KMAS {} offset {}: {} of {} rows imported",platform,page,count,items.size());
+                long total=-1;
+                try{total=Long.parseLong(value(result,"totalCount"));}catch(NumberFormatException ignored){}
+                if(items.size()<PAGE_SIZE || (total>=0 && (long)page+PAGE_SIZE>=total))break;
             }
             }
         };
