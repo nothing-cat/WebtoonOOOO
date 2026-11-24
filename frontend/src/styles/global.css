@@ -1,0 +1,149 @@
+@import "./variables.css";
+@import "./reset.css";
+@import "./animations.css";
+@import "./responsive.css";
+
+/* 프로젝트 전체 기본 스타일 정의 */
+.page {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 44px 0 72px;
+}
+
+
+/* 위치...? */
+.quiz-section,
+.recommend-result,
+.page section + section {
+  margin-top: 44px;
+}
+
+.empty-page {
+  display: grid;
+  place-items: center;
+}
+
+.choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 14px;
+
+  margin-top: 18px;
+}
+
+
+/*-------------------
+공통 입력 필드 스타일 
+---------------------*/
+.header-search input,
+.search-box input,
+.auth-card input,
+.filter-panel select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink);
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+}
+
+
+
+.header-search input:focus,
+.search-box input:focus,
+.auth-card input:focus,
+.filter-panel select:focus {
+  border-color: rgba(123, 97, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.12);
+}
+
+
+/*--------------------
+공통 제목 스타일
+--------------------*/
+.page-heading h1,
+.detail-info h1,
+.auth-card h1,
+.profile-hero h1,
+.empty-page h1 {
+  margin: 0;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+/*---------------
+공통 문단 스타일
+--------------*/
+.page-heading p,
+.detail-info p,
+.profile-hero p,
+.profile-panel p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+/* --------------------
+공통 카드 스타일
+-------------------- */
+.card {
+  border: 1px solid var(--glass-line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+
+
+/* --------------
+카드, 패널
+-------------- */
+
+.info-card {
+  position: relative;
+  overflow: hidden;
+  padding: 26px;
+  min-height: 230px;
+  animation: fadeUp 0.58s ease both;
+}
+
+.info-card::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.62), transparent 42%);
+}
+
+.info-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.info-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.info-card h2,
+.quiz-panel h3,
+.profile-panel h2 {
+  margin: 0;
+}
+
+.info-card h2 {
+  font-size: 28px;
+}
+/*----------------*/
+
+/* -------------텍스트 링크--------- */
+.auth-card a,
+.text-link {
+  color: var(--primary-dark);
+  font-weight: 800;
+}

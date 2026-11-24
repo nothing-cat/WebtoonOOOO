@@ -1,0 +1,93 @@
+import { useMemo, useState } from "react";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useComments } from "../../hooks/useComments.js";
+import ChoiceButton from "../ui/ChoiceButton.jsx";
+import CommentItem from "./CommentItem.jsx";
+import CommentForm from "./CommentForm.jsx";
+import SectionTitle from "../ui/SectionTitle.jsx";
+import "./CommentList.css";
+
+function CommentList({ webtoonId }) {
+
+  // 댓글 정렬 기준 (popular = 인기순 / latest = 최신순)
+  const [sortType, setSortType] = useState("popular");
+
+  // 로그인 사용자 정보 업데이트 함수
+  const { currentUser } = useAuth();
+
+  const {
+    commentList,
+    addComment,
+    deleteComment,
+    editComment,
+    isLoading,
+    toggleEmpathy
+  } = useComments(webtoonId);
+
+  // 정렬 기준에 따라 댓글 목록 정렬
+  const sortedComments = useMemo(() => {
+    const nextComments = [...commentList];
+
+    // 인기순
+    if (sortType === "popular") {
+      return nextComments.sort((a, b) => (b.empathyCount||0) - (a.empathyCount||0));
+    }
+
+    // 최신순: id 기준 (시간 기반)
+    return nextComments.sort((a, b) => b.id - a.id);
+  }, [commentList, sortType]);
+
+
+  
+
+  return (
+    <section className="card comment-section">
+      <SectionTitle eyebrow="댓글" title="작품 감상" compact>
+
+        {/* 댓글 정렬 방식 선택 */}
+        <div className="segmented">
+          <ChoiceButton
+            selected={sortType === "popular"}
+            onClick={() => setSortType("popular")}
+          >
+            인기순
+          </ChoiceButton>
+
+          <ChoiceButton
+            selected={sortType === "latest"}
+            onClick={() => setSortType("latest")}
+          >
+            최신순
+          </ChoiceButton>
+        </div>
+      </SectionTitle>
+
+      {/* 댓글 작성 폼 */}
+      {currentUser ? (
+        <CommentForm onSubmit={addComment} />
+      ) : (
+        <p>댓글 작성은 로그인 후 가능합니다.</p>
+      )}
+
+      {/* 댓글 목록 렌더링 */}
+      <div className="comment-list">
+        {isLoading ? (
+          <p>댓글을 불러오는 중입니다.</p>
+        ) : sortedComments.length === 0 ? (
+          <p>아직 작성된 댓글이 없습니다.</p>
+        ) : sortedComments.map((comment) => (
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            onDelete={deleteComment}
+            onEdit={editComment}
+            onEmpathy={toggleEmpathy}
+            isLiked={comment.isLiked}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default CommentList;
