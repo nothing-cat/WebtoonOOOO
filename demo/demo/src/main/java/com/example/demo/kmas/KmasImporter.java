@@ -19,7 +19,7 @@ public class KmasImporter {
     @Value("${KMAS_API_KEY:}") private String key;
     @Value("${kmas.import.pages:1}") private int pages;
     @Value("${kmas.import.start-page:1}") private int start;
-    @Value("${kmas.import.platforms:네이버웹툰,카카오웹툰}") private String platformNames;
+    @Value("${kmas.import.platforms:네이버웹툰,카카오웹툰,리디}") private String platformNames;
     private static String value(Map<?,?> m,String k){Object v=m.get(k);return v==null?"":v.toString().trim();}
     private static String first(String a,String b){return a.isBlank()?b:a;}
     private static String normalize(String s){return java.text.Normalizer.normalize(s,java.text.Normalizer.Form.NFC).strip().replaceAll("\\s+"," ").toLowerCase(Locale.ROOT);}
@@ -41,7 +41,10 @@ public class KmasImporter {
                 if(body==null){log.warn("Empty KMAS response: {}, {}",platform,page);break;}
                 Map<?,?> result=body.get("result") instanceof Map<?,?> m?m:body;
                 if(!"success".equalsIgnoreCase(value(result,"resultState"))){log.warn("KMAS unsuccessful: {}, page {}, message={}",platform,page,value(result,"resultMessage").replace(key,"[redacted]"));break;}
-                Object raw=body.get("itemlist");if(raw==null)raw=result.get("itemlist");
+                Object raw=body.get("itemList");
+                if(raw==null)raw=body.get("itemlist");
+                if(raw==null)raw=result.get("itemList");
+                if(raw==null)raw=result.get("itemlist");
                 if(!(raw instanceof List<?> items)){log.warn("Unexpected KMAS itemlist format: {}, {}",platform,page);break;}
                 if(items.isEmpty())break;
                 Integer count;
