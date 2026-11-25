@@ -6,6 +6,6 @@ import org.springframework.web.servlet.config.annotation.*;
 public class WebConfig implements WebMvcConfigurer {
     @Value("${APP_FRONTEND_ORIGIN:http://localhost:5173}") private String origins;
     @Override public void addCorsMappings(CorsRegistry registry){
-        registry.addMapping("/api/**").allowedOrigins(origins.split("\\s*,\\s*")).allowedMethods("GET","POST","PUT","DELETE","OPTIONS").allowedHeaders("Content-Type").allowCredentials(true);
+        registry.addMapping("/api/**").allowedOrigins(origins.split("\\s*,\\s*")).allowedMethods("GET","POST","PUT","DELETE","OPTIONS").allowedHeaders("Content-Type", "X-CSRF-TOKEN").allowCredentials(true);
     }
 }
