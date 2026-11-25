@@ -59,6 +59,8 @@ function CommentItem({ comment, title, onDelete, onEdit, onEmpathy, isLiked, }) 
           size="medium"
           type="button"
           onClick={() => onEmpathy(comment.id)}
+          aria-pressed={isLiked}
+          disabled={comment.empathyPending}
         >
           {isLiked ? "♥ 공감" : "♡ 공감"} {comment.empathyCount}
         </Button>

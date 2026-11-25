@@ -1,6 +1,7 @@
 import {useState,useEffect,useRef} from 'react'
 import {useAuth} from '../../context/AuthContext.jsx'
 import {useData} from '../../hooks/useData.js'
+import {useOptimisticReaction} from '../../hooks/useOptimisticReaction.js'
 import {query} from '../../services/apiClient.js'
 import * as api from '../../services/boardApi.js'
 import {searchWebtoons} from '../../services/webtoonApi.js'
@@ -11,11 +12,83 @@ export function Board({params}){
  const {currentUser}=useAuth();const category=params.get('category')||'',popular=params.get('popular')==='true';const list=useData(()=> (popular?api.fetchPopularPosts:api.fetchPosts)({category}),JSON.stringify([category,popular]),[])
  return <div className="page board-page"><h1>게시판</h1><div className="board-toolbar"><div className="tabs">{[['','전체'],...Object.entries(categories)].map(([k,v])=><a className={k===category?'active':''} key={k} href={'#/board'+query({category:k,popular:popular?'true':''})}>{v}</a>)}</div><div className="board-controls"><label className="switch-label">인기글<input className="switch" type="checkbox" checked={popular} onChange={e=>go('/board'+query({category,popular:e.target.checked?'true':''}))}/></label><a className="button" href={currentUser?'#/board/write':'#/login'}>글쓰기</a></div></div><p className="muted board-caption">{categories[category]||'전체 게시판'}</p><Status state={list}><PostList posts={list.data||[]}/></Status></div>
 }
-export function PostDetail({id}){
- const {currentUser}=useAuth();const [version,refresh]=useState(0);const viewedPost=useRef(null);const state=useData(()=>api.fetchPost(id),'post:'+id,null,version);const p=state.data
- useEffect(()=>{if(viewedPost.current?.id!==id)viewedPost.current={id,promise:api.recordPostView(id)};let active=true;viewedPost.current.promise.then(()=>{if(active)refresh(x=>x+1)}).catch(e=>{if(active)console.error(e.message)});return()=>{active=false}},[id])
- async function act(suffix,method){try{await (suffix?api.setPostLike(id,method==='POST'):api.deletePost(id));if(!suffix)go('/board');else refresh(x=>x+1)}catch(e){alert(e.message)}}
- return <div className="page board-page"><Status state={state}>{p&&<><article className="post-detail"><div className="post-title-row"><h1>{p.title}</h1><div className="text-actions">{currentUser?.id===p.userId&&<a href={'#/board/'+id+'/edit'}>수정</a>}{currentUser&&(currentUser.id===p.userId||currentUser.role==='ADMIN')&&<button onClick={()=>{if(confirm('게시글을 삭제할까요?'))act('','DELETE')}}>삭제</button>}</div></div><div className="post-meta"><span>{categories[p.category]} · {p.username} · {p.createdAt?.slice(0,10).replaceAll('-','.')}</span><small>조회 {p.viewCount||0} · 좋아요 {p.likeCount||0} · 댓글 {p.commentCount||0}</small></div>{p.webtoonId&&<a className="review-link" href={'#/webtoon/'+encodeURIComponent(p.webtoonId)}>리뷰 대상 웹툰 보기 →</a>}<p className="body-text">{p.content}</p><div className="like-center"><button className="secondary" onClick={()=>currentUser?act('/like',p.isLiked?'DELETE':'POST'):go('/login')}>{p.isLiked?'♥':'♡'} 좋아요 {p.likeCount||0}</button></div></article><section><h2>게시글 댓글</h2><Comments postId={id} onChange={()=>refresh(x=>x+1)}/></section><a className="muted" href="#/board">← 게시판 목록</a></>}</Status></div>
+export function PostDetail({ id }) {
+  const { currentUser } = useAuth()
+  const [version, refresh] = useState(0)
+  const viewedPost = useRef(null)
+  const state = useData(() => api.fetchPost(id), JSON.stringify([id, currentUser?.id]), null, version)
+  const post = state.data
+  const likes = useOptimisticReaction(id, currentUser?.id)
+  const reaction = likes.reactionFor(id, post?.isLiked, post?.likeCount)
+
+  useEffect(() => {
+    if (viewedPost.current?.id !== id) {
+      viewedPost.current = { id, promise: api.recordPostView(id) }
+    }
+    let active = true
+    viewedPost.current.promise
+      .then(() => { if (active) refresh(value => value + 1) })
+      .catch(error => { if (active) console.error(error.message) })
+    return () => { active = false }
+  }, [id])
+
+  function toggleLike() {
+    if (!currentUser) {
+      go('/login')
+      return
+    }
+    return likes.toggle(id, reaction, active => api.setPostLike(id, active))
+  }
+
+  async function deletePost() {
+    if (!confirm('게시글을 삭제할까요?')) return
+    try {
+      await api.deletePost(id)
+      go('/board')
+    } catch (error) {
+      alert(error.message)
+    }
+  }
+
+  return (
+    <div className="page board-page">
+      <Status state={state}>
+        {post && (
+          <>
+            <article className="post-detail">
+              <div className="post-title-row">
+                <h1>{post.title}</h1>
+                <div className="text-actions">
+                  {currentUser?.id === post.userId && <a href={'#/board/' + id + '/edit'}>수정</a>}
+                  {currentUser && (currentUser.id === post.userId || currentUser.role === 'ADMIN') && (
+                    <button onClick={deletePost}>삭제</button>
+                  )}
+                </div>
+              </div>
+              <div className="post-meta">
+                <span>{categories[post.category]} · {post.username} · {post.createdAt?.slice(0, 10).replaceAll('-', '.')}</span>
+                <small>조회 {post.viewCount || 0} · 좋아요 {reaction.count} · 댓글 {post.commentCount || 0}</small>
+              </div>
+              {post.webtoonId && (
+                <a className="review-link" href={'#/webtoon/' + encodeURIComponent(post.webtoonId)}>리뷰 대상 웹툰 보기 →</a>
+              )}
+              <p className="body-text">{post.content}</p>
+              <div className="like-center">
+                <button className="secondary" onClick={toggleLike} disabled={reaction.pending} aria-pressed={reaction.active}>
+                  {reaction.active ? '♥' : '♡'} 좋아요 {reaction.count}
+                </button>
+              </div>
+            </article>
+            <section>
+              <h2>게시글 댓글</h2>
+              <Comments postId={id} onChange={() => refresh(value => value + 1)} />
+            </section>
+            <a className="muted" href="#/board">← 게시판 목록</a>
+          </>
+        )}
+      </Status>
+    </div>
+  )
 }
 function Editor({post,id,params}){
  const {currentUser,isLoading}=useAuth();const [category,setCategory]=useState(post?.category||params.get('category')||'GENERAL'),[title,setTitle]=useState(post?.title||''),[content,setContent]=useState(post?.content||''),[webtoonId,setWebtoonId]=useState(post?.webtoonId||params.get('webtoonId')||''),[error,setError]=useState('')
