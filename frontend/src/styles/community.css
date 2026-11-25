@@ -5,7 +5,7 @@
 .community-sidebar h3{margin:0;color:var(--primary-dark)}.community-sidebar a{padding:5px 0;color:var(--muted)}.community-sidebar a:hover{color:var(--primary-dark)}
 .community-sidebar hr{width:100%;border:0;border-top:1px solid var(--line)}
 .webtoon-placeholder{display:grid;place-items:center;aspect-ratio:3/4;background:var(--surface-soft);color:var(--muted);width:100%}
-.community-panel{padding:24px}.demo-note{text-align:center;color:var(--muted);font-size:12px}
+.community-panel{padding:24px}
 .profile-tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px;margin-top:24px}.profile-tabs button{border:0;background:transparent;padding:10px;flex:1;cursor:pointer;color:var(--muted);font-weight:700}.profile-tabs button.active{color:var(--primary-dark);background:var(--surface-soft);border-radius:8px}
 .activity-row{display:block;padding:16px;margin:8px 0}
 .signup-card h1,.signup-bottom{text-align:center}.signup-card small{font-size:12px;color:var(--muted)}.password-field{position:relative}.password-field input{padding-right:44px!important}.password-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);cursor:pointer}

@@ -4,5 +4,7 @@ services:
     runtime: docker
     plan: free
     envVars:
+      - key: KMAS_IMPORT_ENABLED
+        value: "false"
       - key: DB_PASSWORD
         sync: false
