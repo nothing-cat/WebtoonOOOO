@@ -36,6 +36,26 @@
 }
 
 .admin-page button:disabled { opacity: .55; }
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid #e6dfed;
+  padding-bottom: 12px;
+}
+
+.admin-tabs button[aria-selected="false"] {
+  background: white;
+  color: #6940a1;
+  border-color: #e6dfed;
+}
+
+.admin-tabs button:focus-visible {
+  outline: 2px solid #6940a1;
+  outline-offset: 3px;
+}
+
 .admin-members { margin: 16px 0; padding: 0; }
 .admin-members li, .admin-pagination {
   display: flex;
