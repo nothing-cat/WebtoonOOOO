@@ -5,6 +5,7 @@ import {useData} from '../../hooks/useData.js'
 import {query, request} from '../../services/apiClient.js'
 import {fetchGenres, fetchPlatforms} from '../../services/webtoonApi.js'
 import {Status} from '../shared.jsx'
+import ProfileLink from '../../components/ProfileLink.jsx'
 import './Admin.css'
 
 const importPath = '/admin/webtoons/kmas-import'
@@ -182,7 +183,7 @@ function Members() {
       {members.data?.length === 0 && <p>검색 결과가 없어요.</p>}
       <ul className="admin-members">
         {members.data?.slice(0, 30).map(member => <li key={member.id}>
-          <span>{member.username} · {member.role === 'ADMIN' ? '관리자' : member.blocked ? '차단됨' : '이용 가능'}</span>
+          <span><ProfileLink userId={member.id}>{member.username}</ProfileLink> · {member.role === 'ADMIN' ? '관리자' : member.blocked ? '차단됨' : '이용 가능'}</span>
           {member.role === 'USER' && <button type="button" disabled={pending} onClick={() => toggle(member)}>
             {member.blocked ? '차단 해제' : '차단'}
           </button>}

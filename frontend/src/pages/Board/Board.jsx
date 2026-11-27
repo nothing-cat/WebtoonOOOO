@@ -1,3 +1,4 @@
+import ProfileLink from '../../components/ProfileLink.jsx'
 import {useState,useEffect,useRef} from 'react'
 import {useAuth} from '../../context/AuthContext.jsx'
 import {useData} from '../../hooks/useData.js'
@@ -66,7 +67,7 @@ export function PostDetail({ id }) {
                 </div>
               </div>
               <div className="post-meta">
-                <span>{categories[post.category]} · {post.username} · {post.createdAt?.slice(0, 10).replaceAll('-', '.')}</span>
+                <span>{categories[post.category]} · <ProfileLink userId={post.userId}>{post.username}</ProfileLink> · {post.createdAt?.slice(0, 10).replaceAll('-', '.')}</span>
                 <small>조회 {post.viewCount || 0} · 좋아요 {reaction.count} · 댓글 {post.commentCount || 0}</small>
               </div>
               {post.webtoonId && (

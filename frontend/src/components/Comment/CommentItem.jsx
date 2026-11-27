@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import ProfileLink from '../ProfileLink.jsx';
 import Button from "../ui/Button.jsx";
 
 function CommentItem({ comment, title, onDelete, onEdit, onEmpathy, isLiked, }) {
@@ -18,7 +19,7 @@ function CommentItem({ comment, title, onDelete, onEdit, onEmpathy, isLiked, }) 
     <article className="comment-item">
       {/* 작성자 표시 */}
       <div className="comment-header">
-        <strong>{title || comment.username}</strong>
+        <strong><ProfileLink userId={comment.userId}>{title || comment.username}</ProfileLink></strong>
 
         <div className="comment-actions">
           {onEdit && canEdit && !isEditing && (
