@@ -33,3 +33,14 @@
   transition: 0.2s;
 }
 
+
+.profile-hero { flex-wrap: wrap; }
+.profile-nickname { flex: 0 0 100%; display: grid; gap: 6px; }
+.profile-nickname > div { display: flex; gap: 8px; }
+.profile-nickname input {
+  width: min(100%, 16rem);
+  min-width: 0;
+  border: 1px solid #c8becf;
+  border-radius: 8px;
+  padding: 8px 12px;
+}

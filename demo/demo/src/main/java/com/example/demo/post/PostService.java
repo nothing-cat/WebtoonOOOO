@@ -18,7 +18,7 @@ public class PostService {
     public record PostDto(Long id,UUID userId,String username,String webtoonId,PostCategory category,String title,String content,long viewCount,long likeCount,long commentCount,boolean isLiked,OffsetDateTime createdAt,OffsetDateTime updatedAt){}
     public record Input(PostCategory category,String title,String content,String webtoonId){}
     public Post require(Long id){return posts.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"게시글이 없습니다."));}
-    public PostDto dto(Post p,UUID u){return new PostDto(p.getId(),p.getUser().getId(),p.getUser().getUsername(),p.getWebtoon()==null?null:p.getWebtoon().getId(),p.getCategory(),p.getTitle(),p.getContent(),p.getViewCount(),likes.countByPost_Id(p.getId()),comments.countByPost_Id(p.getId()),u!=null&&likes.existsByPost_IdAndUser_Id(p.getId(),u),p.getCreatedAt(),p.getUpdatedAt());}
+    public PostDto dto(Post p,UUID u){return new PostDto(p.getId(),p.getUser().getId(),p.getUser().getDisplayName(),p.getWebtoon()==null?null:p.getWebtoon().getId(),p.getCategory(),p.getTitle(),p.getContent(),p.getViewCount(),likes.countByPost_Id(p.getId()),comments.countByPost_Id(p.getId()),u!=null&&likes.existsByPost_IdAndUser_Id(p.getId(),u),p.getCreatedAt(),p.getUpdatedAt());}
     @Transactional(readOnly=true) public PostDto get(Long id,UUID u){return dto(require(id),u);}
     @Transactional(readOnly=true) public List<PostDto> list(PostCategory category,boolean popular,UUID u){
         var rows=category==null?posts.findAll():posts.findByCategoryOrderByCreatedAtDesc(category,Pageable.unpaged()).getContent();

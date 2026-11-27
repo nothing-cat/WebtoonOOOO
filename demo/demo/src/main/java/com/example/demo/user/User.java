@@ -29,6 +29,12 @@ public class User {
 
     public boolean isBlocked() { return blocked; }
 
+    @Column(name = "nickname", length = 20)
+    private String nickname;
+
+    public String getNickname() { return nickname; }
+    public String getDisplayName() { return nickname == null ? username : nickname; }
+
     public User() {}
 
     public UUID getId() { return id; }
