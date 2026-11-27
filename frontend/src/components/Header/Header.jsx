@@ -46,6 +46,7 @@ function Header() {
       {/* 네비게이션 메뉴 */}
       <nav className="site-nav" aria-label="주요 메뉴">
         
+        {currentUser?.role === "ADMIN" && <NavLink to="/admin">관리자</NavLink>}
         {currentUser ? (
           <NavLink to="/profile">프로필</NavLink>
         ) : (

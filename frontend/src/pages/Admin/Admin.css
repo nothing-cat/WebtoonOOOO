@@ -1,0 +1,48 @@
+.admin-page section {
+  border: 1px solid #e6dfed;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.admin-page form, .admin-page label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-page form {
+  gap: 14px;
+  max-width: 620px;
+  margin-top: 16px;
+}
+
+.admin-page input:not([type="checkbox"]), .admin-page select, .admin-page textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #c8becf;
+  border-radius: 8px;
+  background: white;
+}
+
+.admin-page fieldset { padding: 12px; }
+.admin-page .admin-choice { display: inline-flex; margin: 4px 16px 4px 0; }
+
+.admin-page button {
+  justify-self: start;
+  border: 1px solid #6940a1;
+  background: #6940a1;
+  color: white;
+  padding: 7px 14px;
+  border-radius: 8px;
+}
+
+.admin-page button:disabled { opacity: .55; }
+.admin-members { margin: 16px 0; padding: 0; }
+.admin-members li, .admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+.admin-members li { border-bottom: 1px solid #e6dfed; }
+.admin-pagination { justify-content: flex-start; }

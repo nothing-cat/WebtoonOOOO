@@ -4,6 +4,7 @@ import Footer from './components/Footer/Footer.jsx'
 import Sidebar from './components/Sidebar/Sidebar.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import Home from './pages/Home/Home.jsx'
+import Admin from './pages/Admin/Admin.jsx'
 import Explore from './pages/Explore/Explore.jsx'
 import WebtoonDetail from './pages/WebtoonDetail/WebtoonDetail.jsx'
 import Login from './pages/auth/Login.jsx'
@@ -15,4 +16,4 @@ import './styles/community.css'
 function BoardRoute(){const [params]=useSearchParams();return <Board params={params}/>}
 function PostRoute(){const {id}=useParams();return <PostDetail key={id} id={id}/>}
 function EditorRoute(){const {id}=useParams();const [params]=useSearchParams();return <PostEditor key={id||'new'} id={id} params={params}/>}
-export default function App(){const {pathname}=useLocation();const sidebar=pathname==='/'||pathname==='/explore';return <div className="app"><Header/><ScrollToTop/><div className={sidebar?'community-shell':'community-full'}>{sidebar&&<Sidebar/>}<main className="community-main"><Routes><Route path="/" element={<Home/>}/><Route path="/explore" element={<Explore/>}/><Route path="/webtoon/:id" element={<WebtoonDetail/>}/><Route path="/login" element={<Login/>}/><Route path="/signup" element={<Signup/>}/><Route path="/profile" element={<Profile/>}/><Route path="/board" element={<BoardRoute/>}/><Route path="/board/write" element={<EditorRoute/>}/><Route path="/board/:id/edit" element={<EditorRoute/>}/><Route path="/board/:id" element={<PostRoute/>}/><Route path="*" element={<NotFound/>}/></Routes></main></div><Footer/></div>}
+export default function App(){const {pathname}=useLocation();const sidebar=pathname==='/'||pathname==='/explore';return <div className="app"><Header/><ScrollToTop/><div className={sidebar?'community-shell':'community-full'}>{sidebar&&<Sidebar/>}<main className="community-main"><Routes><Route path="/" element={<Home/>}/><Route path="/explore" element={<Explore/>}/><Route path="/webtoon/:id" element={<WebtoonDetail/>}/><Route path="/login" element={<Login/>}/><Route path="/signup" element={<Signup/>}/><Route path="/profile" element={<Profile/>}/><Route path="/admin" element={<Admin/>}/><Route path="/board" element={<BoardRoute/>}/><Route path="/board/write" element={<EditorRoute/>}/><Route path="/board/:id/edit" element={<EditorRoute/>}/><Route path="/board/:id" element={<PostRoute/>}/><Route path="*" element={<NotFound/>}/></Routes></main></div><Footer/></div>}

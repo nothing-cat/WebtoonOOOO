@@ -27,6 +27,7 @@ public class AuthController {
     public UserDto login(@RequestBody Credentials c,HttpServletRequest request){
         User u=c.username()==null?null:users.findByUsername(c.username()).orElse(null);
         if(u==null||c.password()==null||c.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length>72||!encoder.matches(c.password(),u.getPasswordHash()))throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"아이디 또는 비밀번호가 올바르지 않습니다.");
+        if (u.isBlocked()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "차단된 계정입니다.");
         var previous=request.getSession(false);if(previous!=null)previous.invalidate();
         request.getSession(true).setAttribute(SessionUser.KEY,u.getId());return dto(u);
     }

@@ -24,6 +24,11 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
+    @Column(name = "is_blocked", nullable = false)
+    private boolean blocked;
+
+    public boolean isBlocked() { return blocked; }
+
     public User() {}
 
     public UUID getId() { return id; }
