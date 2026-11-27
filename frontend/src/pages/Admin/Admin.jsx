@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {Link, Navigate} from 'react-router-dom'
 import {useAuth} from '../../context/AuthContext.jsx'
 import {useData} from '../../hooks/useData.js'
@@ -6,6 +6,88 @@ import {query, request} from '../../services/apiClient.js'
 import {fetchGenres, fetchPlatforms} from '../../services/webtoonApi.js'
 import {Status} from '../shared.jsx'
 import './Admin.css'
+
+const importPath = '/admin/webtoons/kmas-import'
+const importMessages = {
+  RUNNING: 'KMAS에서 웹툰을 가져오는 중이에요.',
+  COMPLETE: 'KMAS 웹툰 업데이트를 완료했어요.',
+  PARTIAL: '일부 플랫폼의 수집이 끝나지 않았어요.',
+  FAILED: 'KMAS 웹툰 업데이트를 완료하지 못했어요.',
+}
+const platformStates = {
+  COMPLETE: '완료',
+  LIMIT_REACHED: '수집 한도 도달',
+  REPEATED_BATCH: '중복 응답으로 중단',
+  EMPTY_RESPONSE: '응답 없음',
+  INVALID_RESPONSE: '응답 형식 오류',
+  API_ERROR: 'API 오류',
+  FAILED: '요청 또는 저장 실패',
+}
+
+function KmasImport() {
+  const [status, setStatus] = useState(null)
+  const [starting, setStarting] = useState(false)
+  const [error, setError] = useState('')
+  const [statusError, setStatusError] = useState('')
+  const running = status?.state === 'RUNNING'
+
+  useEffect(() => {
+    if (starting) return
+    let cancelled = false
+    let timer
+
+    async function refresh() {
+      try {
+        const result = await request(importPath)
+        if (cancelled) return
+        setStatus(result)
+        setStatusError('')
+        if (result.state === 'RUNNING') timer = setTimeout(refresh, 3000)
+      } catch (error) {
+        if (!cancelled) {
+          setStatusError(error.message)
+          timer = setTimeout(refresh, 5000)
+        }
+      }
+    }
+
+    refresh()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [starting])
+
+  async function start() {
+    setStarting(true)
+    setError('')
+    try {
+      setStatus(await request(importPath, 'POST'))
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  return <section aria-labelledby="kmas-import-title">
+    <h2 id="kmas-import-title">KMAS 웹툰 업데이트</h2>
+    <p>KMAS에서 작품 정보를 가져와 새 작품을 추가하고 기존 KMAS 작품을 갱신해요.</p>
+    <button type="button" disabled={starting || running} onClick={start}>
+      {starting || running ? '업데이트 중…' : 'KMAS 데이터 가져오기'}
+    </button>
+    {(error || statusError) && <p role="alert">{error || statusError}</p>}
+    {status && importMessages[status.state] && <p role="status">{importMessages[status.state]}</p>}
+    {status?.platforms.length > 0 && <>
+      <p>추가 {status.counts.inserted ?? 0}건 · 갱신 {status.counts.updated ?? 0}건</p>
+      <ul>
+        {status.platforms.map(result => <li key={result.platform}>
+          {result.platform} · {platformStates[result.status] ?? result.status} · {result.batches}페이지 저장
+        </li>)}
+      </ul>
+    </>}
+  </section>
+}
 
 function WebtoonForm() {
   const genres = useData(fetchGenres, 'admin-genres', [])
@@ -149,8 +231,15 @@ function BannerForm() {
   </section>
 }
 
+function WebtoonManagement() {
+  return <div className="page">
+    <KmasImport />
+    <WebtoonForm />
+  </div>
+}
+
 const adminTabs = [
-  {id: 'webtoons', label: '웹툰 수동 등록', Panel: WebtoonForm},
+  {id: 'webtoons', label: '웹툰 수동 등록', Panel: WebtoonManagement},
   {id: 'members', label: '회원 관리', Panel: Members},
   {id: 'banner', label: '홈 배너 편집', Panel: BannerForm},
 ]
