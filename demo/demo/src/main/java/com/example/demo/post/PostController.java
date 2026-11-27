@@ -11,6 +11,17 @@ public class PostController {
     public PostController(PostService service){this.service=service;}
     @GetMapping("/posts") public List<PostService.PostDto> list(@RequestParam(required=false) PostCategory category,HttpServletRequest r){return service.list(category,false,SessionUser.id(r));}
     @GetMapping("/posts/popular") public List<PostService.PostDto> popular(@RequestParam(required=false) PostCategory category,HttpServletRequest r){return service.list(category,true,SessionUser.id(r));}
+    @GetMapping("/posts/page")
+    public PostService.PostPage page(
+        @RequestParam(required = false) PostCategory category,
+        @RequestParam(defaultValue = "false") boolean popular,
+        @RequestParam(defaultValue = "false") boolean excludeNotices,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "20") int size,
+        HttpServletRequest request
+    ) {
+        return service.page(category, popular, excludeNotices, SessionUser.id(request), page, size);
+    }
     @GetMapping("/posts/{id}") public PostService.PostDto get(@PathVariable Long id,HttpServletRequest r){return service.get(id,SessionUser.id(r));}
     @GetMapping("/webtoons/{id}/reviews") public List<PostService.PostDto> reviews(@PathVariable String id,HttpServletRequest r){return service.reviews(id,SessionUser.id(r));}
     @GetMapping("/users/me/posts") public List<PostService.PostDto> mine(HttpServletRequest r){return service.mine(SessionUser.require(r));}

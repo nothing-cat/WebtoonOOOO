@@ -15,7 +15,53 @@ import PublicProfile from './pages/Profile/PublicProfile.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 import {Board,PostDetail,PostEditor} from './pages/Board/Board.jsx'
 import './styles/community.css'
-function BoardRoute(){const [params]=useSearchParams();return <Board params={params}/>}
-function PostRoute(){const {id}=useParams();return <PostDetail key={id} id={id}/>}
-function EditorRoute(){const {id}=useParams();const [params]=useSearchParams();return <PostEditor key={id||'new'} id={id} params={params}/>}
-export default function App(){const {pathname}=useLocation();useVisitorTracking(pathname);const sidebar=pathname==='/'||pathname==='/explore';return <div className="app"><Header/><ScrollToTop/><div className={sidebar?'community-shell':'community-full'}>{sidebar&&<Sidebar/>}<main className="community-main"><Routes><Route path="/" element={<Home/>}/><Route path="/explore" element={<Explore/>}/><Route path="/webtoon/:id" element={<WebtoonDetail/>}/><Route path="/login" element={<Login/>}/><Route path="/signup" element={<Signup/>}/><Route path="/profile" element={<Profile/>}/><Route path="/profile/:id" element={<PublicProfile/>}/><Route path="/admin" element={<Admin/>}/><Route path="/board" element={<BoardRoute/>}/><Route path="/board/write" element={<EditorRoute/>}/><Route path="/board/:id/edit" element={<EditorRoute/>}/><Route path="/board/:id" element={<PostRoute/>}/><Route path="*" element={<NotFound/>}/></Routes></main></div><Footer/></div>}
+
+function BoardRoute() {
+  const [params] = useSearchParams()
+  return <Board params={params} />
+}
+
+function PostRoute() {
+  const {id} = useParams()
+  return <PostDetail key={id} id={id} />
+}
+
+function EditorRoute() {
+  const {id} = useParams()
+  const [params] = useSearchParams()
+  return <PostEditor key={id || 'new'} id={id} params={params} />
+}
+
+export default function App() {
+  const {pathname} = useLocation()
+  useVisitorTracking(pathname)
+  const hasSidebar = pathname === '/' || pathname === '/explore'
+
+  return (
+    <div className="app">
+      <Header />
+      <ScrollToTop />
+      <div className={hasSidebar ? 'community-shell' : 'community-full'}>
+        {hasSidebar && <Sidebar />}
+        <main className="community-main">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/webtoon/:id" element={<WebtoonDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:id" element={<PublicProfile />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/board" element={<BoardRoute />} />
+            <Route path="/board/write" element={<EditorRoute />} />
+            <Route path="/board/:id/edit" element={<EditorRoute />} />
+            <Route path="/board/:id" element={<PostRoute />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+      </div>
+      <Footer />
+    </div>
+  )
+}

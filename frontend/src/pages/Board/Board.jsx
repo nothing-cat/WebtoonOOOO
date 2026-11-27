@@ -9,10 +9,53 @@ import {searchWebtoons} from '../../services/webtoonApi.js'
 import {go} from '../../router.js'
 import {categories} from '../../constants/categories.js'
 import {Comments,PostList,Status} from '../shared.jsx'
-export function Board({params}){
- const {currentUser}=useAuth();const category=params.get('category')||'',popular=params.get('popular')==='true';const list=useData(()=> (popular?api.fetchPopularPosts:api.fetchPosts)({category}),JSON.stringify([category,popular]),[])
- return <div className="page board-page"><h1>게시판</h1><div className="board-toolbar"><div className="tabs">{[['','전체'],...Object.entries(categories)].map(([k,v])=><a className={k===category?'active':''} key={k} href={'#/board'+query({category:k,popular:popular?'true':''})}>{v}</a>)}</div><div className="board-controls"><label className="switch-label">인기글<input className="switch" type="checkbox" checked={popular} onChange={e=>go('/board'+query({category,popular:e.target.checked?'true':''}))}/></label><a className="button" href={currentUser?'#/board/write':'#/login'}>글쓰기</a></div></div><p className="muted board-caption">{categories[category]||'전체 게시판'}</p><Status state={list}><PostList posts={list.data||[]}/></Status></div>
+export function Board({params}) {
+  const {currentUser} = useAuth()
+  const category = params.get('category') || ''
+  const popular = params.get('popular') === 'true'
+  const requestedPage = Number(params.get('page'))
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 && requestedPage <= 2147483647
+    ? requestedPage : 1
+  const filters = {category, popular, page}
+  const list = useData(() => api.fetchPostPage(filters), JSON.stringify([filters, currentUser?.id]))
+  const pageLink = next => '#/board' + query({category, popular: popular || '', page: next})
+
+  return (
+    <div className="page board-page">
+      <h1>게시판</h1>
+      <div className="board-toolbar">
+        <div className="tabs">
+          {[['', '전체'], ...Object.entries(categories)].map(([key, label]) => (
+            <a className={key === category ? 'active' : ''} key={key}
+               href={'#/board' + query({category: key, popular: popular || ''})}>{label}</a>
+          ))}
+        </div>
+        <div className="board-controls">
+          <label className="switch-label">
+            인기글
+            <input className="switch" type="checkbox" checked={popular}
+              onChange={event => go('/board' + query({category, popular: event.target.checked || ''}))} />
+          </label>
+          <a className="button" href={currentUser ? '#/board/write' : '#/login'}>글쓰기</a>
+        </div>
+      </div>
+      <p className="muted board-caption">{categories[category] || '전체 게시판'}</p>
+      <Status state={list}>
+        {list.data && <>
+          <PostList posts={list.data.items} />
+          {(page > 1 || list.data.hasNext) && (
+            <nav className="board-controls" aria-label="게시글 목록 페이지">
+              {page > 1 && <a className="button" href={pageLink(page - 1)}>이전</a>}
+              <span>{page}페이지</span>
+              {list.data.hasNext && <a className="button" href={pageLink(page + 1)}>다음</a>}
+            </nav>
+          )}
+        </>}
+      </Status>
+    </div>
+  )
 }
+
 export function PostDetail({ id }) {
   const { currentUser } = useAuth()
   const [version, refresh] = useState(0)
