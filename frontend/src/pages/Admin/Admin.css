@@ -66,3 +66,20 @@
 }
 .admin-members li { border-bottom: 1px solid #e6dfed; }
 .admin-pagination { justify-content: flex-start; }
+
+.admin-statistics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.admin-statistics > div {
+  padding: 16px;
+  border: 1px solid #e6dfed;
+  border-radius: 8px;
+}
+.admin-statistics dd {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+  font-weight: 750;
+}

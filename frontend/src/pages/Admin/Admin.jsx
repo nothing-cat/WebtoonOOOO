@@ -6,6 +6,7 @@ import {query, request} from '../../services/apiClient.js'
 import {fetchGenres, fetchPlatforms} from '../../services/webtoonApi.js'
 import {Status} from '../shared.jsx'
 import ProfileLink from '../../components/ProfileLink.jsx'
+import Statistics from './Statistics.jsx'
 import './Admin.css'
 
 const importPath = '/admin/webtoons/kmas-import'
@@ -243,6 +244,7 @@ const adminTabs = [
   {id: 'webtoons', label: '웹툰 수동 등록', Panel: WebtoonManagement},
   {id: 'members', label: '회원 관리', Panel: Members},
   {id: 'banner', label: '홈 배너 편집', Panel: BannerForm},
+  {id: 'statistics', label: '이용자 통계', Panel: Statistics},
 ]
 
 export default function Admin() {
@@ -288,6 +290,6 @@ export default function Admin() {
       id={'admin-panel-' + id}
       aria-labelledby={'admin-tab-' + id}
       hidden={activeTab !== id}
-    ><Panel /></div>)}
+     >{id !== 'statistics' || activeTab === id ? <Panel /> : null}</div>)}
   </div>
 }
