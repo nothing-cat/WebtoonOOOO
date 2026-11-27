@@ -2,6 +2,7 @@ package com.example.demo.admin;
 
 import com.example.demo.auth.SessionUser;
 import com.example.demo.common.AccessService;
+import com.example.demo.kmas.KmasImporter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -19,10 +20,25 @@ import org.springframework.web.server.ResponseStatusException;
 public class AdminController {
     private final JdbcTemplate jdbc;
     private final AccessService access;
+    private final KmasImporter kmas;
 
-    public AdminController(JdbcTemplate jdbc, AccessService access) {
+    public AdminController(JdbcTemplate jdbc, AccessService access, KmasImporter kmas) {
         this.jdbc = jdbc;
         this.access = access;
+        this.kmas = kmas;
+    }
+
+    @GetMapping("/admin/webtoons/kmas-import")
+    public KmasImporter.ImportStatus kmasStatus(HttpServletRequest request) {
+        requireAdmin(request);
+        return kmas.status();
+    }
+
+    @PostMapping("/admin/webtoons/kmas-import")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public KmasImporter.ImportStatus importFromKmas(HttpServletRequest request) {
+        requireAdmin(request);
+        return kmas.start();
     }
 
     public record WebtoonInput(String title, String pictureWriter, String storyWriter,
