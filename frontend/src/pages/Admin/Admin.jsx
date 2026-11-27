@@ -149,16 +149,55 @@ function BannerForm() {
   </section>
 }
 
+const adminTabs = [
+  {id: 'webtoons', label: '웹툰 수동 등록', Panel: WebtoonForm},
+  {id: 'members', label: '회원 관리', Panel: Members},
+  {id: 'banner', label: '홈 배너 편집', Panel: BannerForm},
+]
+
 export default function Admin() {
   const {currentUser, isLoading} = useAuth()
+  const [activeTab, setActiveTab] = useState(adminTabs[0].id)
   if (isLoading) return <p role="status">불러오는 중…</p>
   if (!currentUser) return <Navigate to="/login" replace />
   if (currentUser.role !== 'ADMIN') return <Navigate to="/" replace />
 
+  function moveTab(event, index) {
+    const last = adminTabs.length - 1
+    const destinations = {
+      ArrowLeft: index === 0 ? last : index - 1,
+      ArrowRight: index === last ? 0 : index + 1,
+      Home: 0,
+      End: last,
+    }
+    if (!Object.hasOwn(destinations, event.key)) return
+    event.preventDefault()
+    const nextTab = adminTabs[destinations[event.key]].id
+    setActiveTab(nextTab)
+    document.getElementById('admin-tab-' + nextTab)?.focus()
+  }
+
   return <div className="page admin-page">
     <h1>관리자</h1>
-    <WebtoonForm />
-    <Members />
-    <BannerForm />
+    <div className="admin-tabs" role="tablist" aria-label="관리자 기능">
+      {adminTabs.map(({id, label}, index) => <button
+        key={id}
+        type="button"
+        role="tab"
+        id={'admin-tab-' + id}
+        aria-selected={activeTab === id}
+        aria-controls={'admin-panel-' + id}
+        tabIndex={activeTab === id ? 0 : -1}
+        onClick={() => setActiveTab(id)}
+        onKeyDown={event => moveTab(event, index)}
+      >{label}</button>)}
+    </div>
+    {adminTabs.map(({id, Panel}) => <div
+      key={id}
+      role="tabpanel"
+      id={'admin-panel-' + id}
+      aria-labelledby={'admin-tab-' + id}
+      hidden={activeTab !== id}
+    ><Panel /></div>)}
   </div>
 }
