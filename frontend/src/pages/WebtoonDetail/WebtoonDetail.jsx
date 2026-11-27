@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { setFavorite } from "../../services/favoriteApi.js";
 import { useData } from "../../hooks/useData.js";
+import { useOptimisticReaction } from "../../hooks/useOptimisticReaction.js";
 import { PostList, Status } from "../shared.jsx";
 import { fetchWebtoonById, fetchReviews } from "../../services/webtoonApi.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -18,31 +19,14 @@ function WebtoonDetail() {
   const { currentUser } = useAuth();
   const reviews = useData(()=>fetchReviews(id),"reviews:"+id, []);
 
-  // 웹툰 정보를 저장할 상태
-  const [webtoon, setWebtoon] = useState(null);
-
-  // 로딩 상태 저장
-  const [loading, setLoading] = useState(true);
+  const { data: webtoon, loading } = useData(
+    () => fetchWebtoonById(id),
+    JSON.stringify([id, currentUser?.id]),
+  );
+  const bookmark = useOptimisticReaction(id, currentUser?.id);
   
   // 웹툰 설명 자세히보기 상태
   const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-
-
-
-      const data = await fetchWebtoonById(id).catch(() => null);
-
-
-
-      setWebtoon(data);
-      setLoading(false);
-    }
-
-    load();
-  }, [id,currentUser?.id]); // id가 바뀌면 다시 실행
 
   // 로딩 중일 때 화면
   if (loading) {
@@ -61,9 +45,18 @@ function WebtoonDetail() {
     );
   }
 
-  // 현재 웹툰이 북마크되어 있는지 확인
-  const isBookmarked = Boolean(webtoon.isFavorite);
-  const handleBookmark = async () => { if(!currentUser){alert("로그인 후 이용해주세요.");return;} try{await setFavorite(webtoon.id,!isBookmarked);setWebtoon(await fetchWebtoonById(id));}catch(e){alert(e.message);} };
+  const reaction = bookmark.reactionFor(webtoon.id, webtoon.isFavorite, webtoon.likeCount);
+  function handleBookmark() {
+    if (!currentUser) {
+      alert("로그인 후 이용해주세요.");
+      return;
+    }
+
+    return bookmark.toggle(webtoon.id, reaction, async active => {
+      const updated = await setFavorite(webtoon.id, active);
+      return { active: updated.isFavorite, count: updated.likeCount };
+    });
+  }
   return (
     <div className="page">
       <section className="detail-layout">
@@ -75,8 +68,8 @@ function WebtoonDetail() {
                 ? webtoon.platforms.join(", ")
                 : '정보 없음'}
             </p>
-            <button className="bookmark-button" onClick={handleBookmark}>
-              {isBookmarked ? "♥ 좋아하는 작품에서 해제" : "♡ 좋아하는 작품에 추가"}
+            <button className="bookmark-button" onClick={handleBookmark} disabled={reaction.pending} aria-pressed={reaction.active}>
+              {reaction.active ? "♥ 좋아하는 작품에서 해제" : "♡ 좋아하는 작품에 추가"}
             </button>
           </div>
           <h1>{webtoon.title}</h1>

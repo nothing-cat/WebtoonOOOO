@@ -34,6 +34,6 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override public void addCorsMappings(CorsRegistry registry){
-        registry.addMapping("/api/**").allowedOrigins(origins.split("\\s*,\\s*")).allowedMethods("GET","POST","PUT","DELETE","OPTIONS").allowedHeaders("Content-Type").allowCredentials(true);
+        registry.addMapping("/api/**").allowedOrigins(origins.split("\\s*,\\s*")).allowedMethods("GET","POST","PUT","DELETE","OPTIONS").allowedHeaders("Content-Type", "X-CSRF-TOKEN").allowCredentials(true);
     }
 }
