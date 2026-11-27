@@ -13,7 +13,6 @@ import java.util.*;
 import java.nio.charset.StandardCharsets;
 
 @Configuration
-@ConditionalOnProperty(name="kmas.import.enabled",havingValue="true")
 public class KmasImporter {
     private static final org.slf4j.Logger log=LoggerFactory.getLogger(KmasImporter.class);
     @Value("${KMAS_API_KEY:}") private String key;
@@ -35,53 +34,100 @@ public class KmasImporter {
         throw new IllegalStateException("KMAS request failed");
     }
     private static void merge(Map<String,Integer> target,Map<String,Integer> source){source.forEach((k,v)->target.merge(k,v,Integer::sum));}
-    @Bean ApplicationRunner importKmas(JdbcTemplate jdbc,TransactionTemplate tx){
-        return args->{
-            if(key.isBlank()||pages<1||pages>100||start<0){log.warn("Check KMAS key and page settings.");return;}
-            var factory=new org.springframework.http.client.SimpleClientHttpRequestFactory();
-            factory.setConnectTimeout(10000);factory.setReadTimeout(30000);
-            var client=RestClient.builder().requestFactory(factory).baseUrl("https://www.kmas.or.kr").build();
-            Map<String,Integer> overall=new TreeMap<>();
-            for(String name:platformNames.split(",")){
-                final String platform=name.trim();if(platform.isBlank())continue;
-                Map<String,Integer> summary=new TreeMap<>(),ratings=new TreeMap<>();
-                Set<String> seen=new HashSet<>();Set<List<String>> fingerprints=new HashSet<>();
-                int received=0,completed=0,nextOffset=start;String status="LIMIT_REACHED";
-                for(int i=0;i<pages;i++){
-                    int offset=start+i*PAGE_SIZE;
-                    try{
-                        Map<?,?> body=fetch(client,platform,offset);
-                        if(body==null){status="EMPTY_RESPONSE";break;}
-                        Map<?,?> result=body.get("result") instanceof Map<?,?> m?m:body;
-                        if(!"success".equalsIgnoreCase(value(result,"resultState"))){log.warn("KMAS API error: {}, offset {}, message={}",platform,offset,value(result,"resultMessage").replace(key,"[redacted]"));status="API_ERROR";break;}
-                        Object raw=body.get("itemList");if(raw==null)raw=body.get("itemlist");if(raw==null)raw=result.get("itemList");if(raw==null)raw=result.get("itemlist");
-                        if(!(raw instanceof List<?> items)){status="INVALID_RESPONSE";break;}
-                        if(items.isEmpty()){status="COMPLETE";break;}
-                        received+=items.size();
-                        List<String> fingerprint=items.stream().map(String::valueOf).sorted().toList();
-                        if(!fingerprints.add(fingerprint)){status="REPEATED_BATCH";break;}
-                        Set<String> batchSeen=new HashSet<>();
-                        Map<String,Integer> batchRatings=new TreeMap<>();
-                        Map<String,Integer> batch=tx.execute(transaction->{
-                            Map<String,Integer> counts=new TreeMap<>();
-                            for(Object item:items){
-                                String outcome=item instanceof Map<?,?> row?save(jdbc,row,platform,seen,batchSeen):"invalid";
-                                counts.merge(outcome,1,Integer::sum);
-                                if(item instanceof Map<?,?> row&&(outcome.equals("adult")||outcome.equals("unknownAge")))batchRatings.merge(value(row,"ageGradCdNm"),1,Integer::sum);
-                            }
-                            return counts;
-                        });
-                        seen.addAll(batchSeen);merge(summary,batch);merge(ratings,batchRatings);completed++;nextOffset=offset+PAGE_SIZE;
-                        log.info("KMAS {} offset {}: received={}, counts={}",platform,offset,items.size(),batch);
-                        long total=-1;try{total=Long.parseLong(value(result,"totalCount"));}catch(NumberFormatException ignored){}
-                        if(items.size()<PAGE_SIZE||(total>=0&&(long)offset+PAGE_SIZE>=total)){status="COMPLETE";break;}
-                    }catch(Exception e){status="FAILED";log.error("KMAS import failed: {}, offset {}, error={}",platform,offset,e.getClass().getSimpleName());break;}
-                }
-                log.info("KMAS SUMMARY platform={}, status={}, batches={}, received={}, counts={}, nextOffset={}, excludedRatings={}",platform,status,completed,received,summary,nextOffset,ratings);
-                merge(overall,summary);
+    public record PlatformResult(String platform, String status, int batches) {}
+    public record ImportStatus(String state, Map<String,Integer> counts, List<PlatformResult> platforms) {}
+
+    private final JdbcTemplate jdbc;
+    private final TransactionTemplate tx;
+    private final Object importLock = new Object();
+    private volatile ImportStatus status = new ImportStatus("IDLE", Map.of(), List.of());
+
+    public KmasImporter(JdbcTemplate jdbc, TransactionTemplate tx) {
+        this.jdbc = jdbc;
+        this.tx = tx;
+    }
+
+    public ImportStatus status() { return status; }
+
+    public synchronized ImportStatus start() {
+        if (key.isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "서버에 KMAS API 키가 설정되어 있지 않습니다.");
+        }
+        if ("RUNNING".equals(status.state())) return status;
+        status = new ImportStatus("RUNNING", Map.of(), List.of());
+        Thread.ofPlatform().daemon().name("kmas-admin-import").start(() -> {
+            try {
+                synchronized (importLock) { status = runImport(100, 0); }
+            } catch (Exception e) {
+                log.error("KMAS import stopped: {}", e.getClass().getSimpleName());
+                status = new ImportStatus("FAILED", Map.of(), List.of());
             }
-            log.info("KMAS FINAL SUMMARY {}",overall);
+        });
+        return status;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name="kmas.import.enabled",havingValue="true")
+    ApplicationRunner importKmas() {
+        return args -> {
+            if (key.isBlank() || pages < 1 || pages > 100 || start < 0) {
+                log.warn("Check KMAS key and page settings.");
+                return;
+            }
+            synchronized (importLock) { runImport(pages, start); }
         };
+    }
+
+    private ImportStatus runImport(int pages, int start) {
+        var factory=new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000);factory.setReadTimeout(30000);
+        var client=RestClient.builder().requestFactory(factory).baseUrl("https://www.kmas.or.kr").build();
+        Map<String,Integer> overall=new TreeMap<>();
+        List<PlatformResult> results = new ArrayList<>();
+        for(String name:platformNames.split(",")){
+            final String platform=name.trim();if(platform.isBlank())continue;
+            Map<String,Integer> summary=new TreeMap<>(),ratings=new TreeMap<>();
+            Set<String> seen=new HashSet<>();Set<List<String>> fingerprints=new HashSet<>();
+            int received=0,completed=0,nextOffset=start;String status="LIMIT_REACHED";
+            for(int i=0;i<pages;i++){
+                int offset=start+i*PAGE_SIZE;
+                try{
+                    Map<?,?> body=fetch(client,platform,offset);
+                    if(body==null){status="EMPTY_RESPONSE";break;}
+                    Map<?,?> result=body.get("result") instanceof Map<?,?> m?m:body;
+                    if(!"success".equalsIgnoreCase(value(result,"resultState"))){log.warn("KMAS API error: {}, offset {}, message={}",platform,offset,value(result,"resultMessage").replace(key,"[redacted]"));status="API_ERROR";break;}
+                    Object raw=body.get("itemList");if(raw==null)raw=body.get("itemlist");if(raw==null)raw=result.get("itemList");if(raw==null)raw=result.get("itemlist");
+                    if(!(raw instanceof List<?> items)){status="INVALID_RESPONSE";break;}
+                    if(items.isEmpty()){status="COMPLETE";break;}
+                    received+=items.size();
+                    List<String> fingerprint=items.stream().map(String::valueOf).sorted().toList();
+                    if(!fingerprints.add(fingerprint)){status="REPEATED_BATCH";break;}
+                    Set<String> batchSeen=new HashSet<>();
+                    Map<String,Integer> batchRatings=new TreeMap<>();
+                    Map<String,Integer> batch=tx.execute(transaction->{
+                        Map<String,Integer> counts=new TreeMap<>();
+                        for(Object item:items){
+                            String outcome=item instanceof Map<?,?> row?save(jdbc,row,platform,seen,batchSeen):"invalid";
+                            counts.merge(outcome,1,Integer::sum);
+                            if(item instanceof Map<?,?> row&&(outcome.equals("adult")||outcome.equals("unknownAge")))batchRatings.merge(value(row,"ageGradCdNm"),1,Integer::sum);
+                        }
+                        return counts;
+                    });
+                    seen.addAll(batchSeen);merge(summary,batch);merge(ratings,batchRatings);completed++;nextOffset=offset+PAGE_SIZE;
+                    log.info("KMAS {} offset {}: received={}, counts={}",platform,offset,items.size(),batch);
+                    long total=-1;try{total=Long.parseLong(value(result,"totalCount"));}catch(NumberFormatException ignored){}
+                    if(items.size()<PAGE_SIZE||(total>=0&&(long)offset+PAGE_SIZE>=total)){status="COMPLETE";break;}
+                }catch(Exception e){status="FAILED";log.error("KMAS import failed: {}, offset {}, error={}",platform,offset,e.getClass().getSimpleName());break;}
+            }
+            log.info("KMAS SUMMARY platform={}, status={}, batches={}, received={}, counts={}, nextOffset={}, excludedRatings={}",platform,status,completed,received,summary,nextOffset,ratings);
+            merge(overall,summary);
+            results.add(new PlatformResult(platform, status, completed));
+        }
+        log.info("KMAS FINAL SUMMARY {}",overall);
+        String state = results.isEmpty() ? "FAILED" :
+            results.stream().allMatch(result -> "COMPLETE".equals(result.status())) ? "COMPLETE" : "PARTIAL";
+        return new ImportStatus(state, Map.copyOf(overall), List.copyOf(results));
     }
     private String save(JdbcTemplate jdbc,Map<?,?> row,String requestedPlatform,Set<String> seen,Set<String> batchSeen){
         String title=first(value(row,"prdctNm"),value(row,"title")), age=value(row,"ageGradCdNm");
