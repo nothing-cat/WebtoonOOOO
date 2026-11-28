@@ -1,6 +1,6 @@
 # Backend persistence layer
 
-Java 21 / Spring Boot / Spring Data JPA. Existing package: com.example.demo. Source directory: demo/demo/src/main/java.
+Java 21 / Spring Boot / Spring Data JPA. Existing package: com.example.demo. Source directory: backend/src/main/java.
 
 The 11 public tables created in Supabase are mapped by 11 entities and repositories. Four join tables use @EmbeddedId and @MapsId. Use persisted parent entities to construct join entities. PostCategory and UserRole correspond to the existing database CHECK constraints. DTOs must never serialize User.passwordHash.
 

@@ -8,7 +8,7 @@ RUN npm run build
 
 FROM eclipse-temurin:21-jdk AS backend-build
 WORKDIR /backend
-COPY demo/demo/ ./
+COPY backend/ ./
 COPY --from=frontend-build /frontend/dist/ ./src/main/resources/static/
 RUN sh ./gradlew --no-daemon bootJar
 
