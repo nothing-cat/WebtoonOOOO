@@ -136,8 +136,9 @@ public class PostService {
         post.setCategory(input.category());
         post.setTitle(AccessService.nonblank(input.title()));
         post.setContent(AccessService.nonblank(input.content()));
-        post.setWebtoon(input.category() == PostCategory.REVIEW
-            ? webtoons.require(AccessService.nonblank(input.webtoonId()))
+        String webtoonId = input.webtoonId();
+        post.setWebtoon(input.category() == PostCategory.REVIEW && webtoonId != null && !webtoonId.isBlank()
+            ? webtoons.require(webtoonId.trim())
             : null);
     }
 
